@@ -27,7 +27,7 @@ namespace Domain.Tests.Common
         {
             var exception = Assert.Throws<ArgumentException>(() => Money.Create("USD", -1m));
 
-            Assert.Equal("Amount Cannot be negative (Parameter 'currency')", exception.Message);
+            Assert.Equal("Amount Cannot be negative (Parameter 'amount')", exception.Message);
         }
 
         [Fact]
