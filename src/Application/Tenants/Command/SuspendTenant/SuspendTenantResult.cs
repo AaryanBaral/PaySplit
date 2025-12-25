@@ -1,8 +1,8 @@
 
 
-using Domain.Tenant;
+using PaySplit.Domain.Tenants;
 
-namespace Application.Tenants.Command.SuspendTenant
+namespace PaySplit.Application.Tenants.Command.SuspendTenant
 {
     public class SuspendTenantResult
     {

@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Application.Common.Abstractions;
-using Application.Common.Results;
 
-namespace Application.Tenants.Command.UpdateTenant
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+
+namespace PaySplit.Application.Tenants.Command.UpdateTenant
 {
     public class RenameTenantCommand : ICommand<Result<RenameTenantResult>>
     {

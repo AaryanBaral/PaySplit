@@ -1,4 +1,4 @@
-namespace API.Dto.Merchants
+namespace PaySplit.API.Dto.Merchants
 {
     public class CreateMerchantRequest
     {

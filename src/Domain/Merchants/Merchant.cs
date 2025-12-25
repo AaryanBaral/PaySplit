@@ -1,7 +1,7 @@
 
-using Domain.Common;
+using PaySplit.Domain.Common;
 
-namespace Domain.Merchants
+namespace PaySplit.Domain.Merchants
 {
     public class Merchant : Entity
     {
@@ -13,6 +13,7 @@ namespace Domain.Merchants
         public DateTimeOffset CreatedAtUtc { get; private set; }
         public DateTimeOffset? DeactivatedAtUtc { get; private set; }
         public DateTimeOffset? SuspendedAtUtc { get; private set; }
+        public bool IsActive { get; private set; }
 
         private Merchant() { }
 
@@ -97,14 +98,17 @@ namespace Domain.Merchants
                 case MerchantStatus.Active:
                     DeactivatedAtUtc = null;
                     SuspendedAtUtc = null;
+                    IsActive = true;
                     break;
                 case MerchantStatus.Inactive:
                     DeactivatedAtUtc = DateTimeOffset.UtcNow;
                     SuspendedAtUtc = null;
+                    IsActive = false;
                     break;
                 case MerchantStatus.Suspended:
                     SuspendedAtUtc = DateTimeOffset.UtcNow;
                     DeactivatedAtUtc = null;
+                    IsActive = false;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(status), "Invalid merchant status.");

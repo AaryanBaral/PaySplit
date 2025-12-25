@@ -1,17 +1,16 @@
 
-using Application.Common.Abstractions;
-using Application.Common.Results;
-using Application.Interfaces.Presistence;
-using Microsoft.EntityFrameworkCore;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+using PaySplit.Application.Interfaces.Repository;
 
-namespace Application.Tenants.Query.GetTenantById
+namespace PaySplit.Application.Tenants.Query.GetTenantById
 {
     public class GetTenantByIdHandler : IQueryHandler<GetTenantByIdQuery, Result<GetTenantByIdDto>>
     {
-        private readonly IApplicationDbContext _db;
-        public GetTenantByIdHandler(IApplicationDbContext db)
+        private readonly ITenantRepository _repository;
+        public GetTenantByIdHandler(ITenantRepository repository)
         {
-            _db = db;
+            _repository = repository;
         }
         public async Task<Result<GetTenantByIdDto>> HandleAsync(GetTenantByIdQuery query, CancellationToken cancellationToken = default)
         {
@@ -19,16 +18,20 @@ namespace Application.Tenants.Query.GetTenantById
             {
                 return Result<GetTenantByIdDto>.Failure("Tenant id is required.");
             }
-            var tenant = await _db.Tenants
-            .AsNoTracking()
-            .Where(t => t.Id == query.Id)
-            .Select(t => new GetTenantByIdDto(t.Id, t.Name, t.Status.ToString(), t.CreatedAtUtc, t.DeactivatedAtUtc, t.SuspendedAtUTC))
-            .FirstOrDefaultAsync(cancellationToken);
+
+            var tenant = await _repository.GetByIdAsync(query.Id, cancellationToken);
             if (tenant is null)
             {
                 return Result<GetTenantByIdDto>.Failure("Tenant not found");
             }
-            return Result<GetTenantByIdDto>.Success(tenant);
+            var dto = new GetTenantByIdDto(
+                tenant.Id,
+                tenant.Name,
+                tenant.Status.ToString(),
+                tenant.CreatedAtUtc,
+                tenant.DeactivatedAtUtc,
+                tenant.SuspendedAtUtc);
+            return Result<GetTenantByIdDto>.Success(dto);
 
         }
     }

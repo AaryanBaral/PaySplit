@@ -1,6 +1,6 @@
-using Domain.Common;
+using PaySplit.Domain.Common;
 
-namespace Domain.Tenants
+namespace PaySplit.Domain.Tenants
 {
     public class TenantUser : Entity
     {

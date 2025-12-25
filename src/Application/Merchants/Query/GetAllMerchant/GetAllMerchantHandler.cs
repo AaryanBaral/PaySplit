@@ -1,46 +1,25 @@
-using Application.Common.Abstractions;
-using Application.Common.Results;
-using Application.Interfaces.Presistence;
-using Microsoft.EntityFrameworkCore;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+using PaySplit.Application.Interfaces.Repository;
 
-namespace Application.Merchants.Query.GetAllMerchant
+namespace PaySplit.Application.Merchants.Query.GetAllMerchant
 {
     public class GetAllMerchantHandler : IQueryHandler<GetAllMerchantQuery, Result<List<GetAllMerchantDto>>>
     {
-        private readonly IApplicationDbContext _db;
+        private readonly IMerchantRepository _repository;
 
-        public GetAllMerchantHandler(IApplicationDbContext db)
+        public GetAllMerchantHandler(IMerchantRepository repository)
         {
-            _db = db;
+            _repository = repository;
         }
 
         public async Task<Result<List<GetAllMerchantDto>>> HandleAsync(GetAllMerchantQuery query, CancellationToken cancellationToken = default)
         {
             var filter = query.PaginationFilter;
 
-            var dbQuery = _db.Merchants
-                .AsNoTracking()
-                .AsQueryable();
+            var merchants = await _repository.GetAllAsync(filter, cancellationToken);
 
-            if (!string.IsNullOrWhiteSpace(filter.Search))
-            {
-                var search = filter.Search.Trim().ToLower();
-                dbQuery = dbQuery.Where(m =>
-                    m.Name.ToLower().Contains(search) ||
-                    m.Email.ToLower().Contains(search));
-            }
-
-            if (!string.IsNullOrWhiteSpace(filter.Status))
-            {
-                dbQuery = dbQuery.Where(m => m.Status.ToString() == filter.Status);
-            }
-
-            var skip = (filter.Page - 1) * filter.PageSize;
-
-            var merchants = await dbQuery
-                .OrderBy(m => m.CreatedAtUtc)
-                .Skip(skip)
-                .Take(filter.PageSize)
+            var result = merchants
                 .Select(m => new GetAllMerchantDto(
                     m.Id,
                     m.TenantId,
@@ -49,9 +28,9 @@ namespace Application.Merchants.Query.GetAllMerchant
                     m.RevenueShare.Value,
                     m.Status.ToString(),
                     m.CreatedAtUtc))
-                .ToListAsync(cancellationToken);
+                .ToList();
 
-            return Result<List<GetAllMerchantDto>>.Success(merchants);
+            return Result<List<GetAllMerchantDto>>.Success(result);
         }
     }
 }

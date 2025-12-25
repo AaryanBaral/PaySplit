@@ -1,20 +1,21 @@
-using Application.Common.Abstractions;
-using Application.Common.Results;
-using Application.Interfaces.Presistence;
-using Application.Interfaces.Repository;
-using Domain.Tenant;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Tenants.Command.CreateTenant
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+using PaySplit.Application.Interfaces.Persistence;
+using PaySplit.Application.Interfaces.Repository;
+using PaySplit.Domain.Tenants;
+
+namespace PaySplit.Application.Tenants.Command.CreateTenant
 {
     public class CreateTenantHandler : ICommandHandler<CreateTenantCommand, Result<CreateTenantResult>>
     {
-        private readonly ITenantRepository _repostory;
+        private readonly ITenantRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CreateTenantHandler> _logger;
         public CreateTenantHandler(ITenantRepository repository, IUnitOfWork unitOfWork, ILogger<CreateTenantHandler> logger)
         {
-            _repostory = repository;
+            _repository = repository;
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
@@ -33,7 +34,7 @@ namespace Application.Tenants.Command.CreateTenant
                 return Result<CreateTenantResult>.Failure(ex.Message);
             }
 
-            await _repostory.AddAsync(tenant, cancellationToken);
+            await _repository.AddAsync(tenant, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var createTenantResult = new CreateTenantResult(

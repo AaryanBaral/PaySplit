@@ -1,6 +1,6 @@
-using Domain.Merchants;
+using PaySplit.Domain.Merchants;
 
-namespace Domain.Tests.Merchants
+namespace PaySplit.Domain.Tests.Merchants
 {
     public class MerchantTests
     {

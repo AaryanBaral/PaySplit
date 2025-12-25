@@ -1,7 +1,7 @@
-using Application.Common.Abstractions;
-using Application.Common.Results;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
 
-namespace Application.Merchants.Command.CreateMerchant
+namespace PaySplit.Application.Merchants.Command.CreateMerchant
 {
     public class CreateMerchantCommand : ICommand<Result<CreateMerchantResult>>
     {

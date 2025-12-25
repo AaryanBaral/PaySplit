@@ -1,16 +1,17 @@
-using API.Dto.Common;
-using API.Dto.Merchants;
-using Application.Common.Filter;
-using Application.Merchants.Command.ActivateMerchant;
-using Application.Merchants.Command.CreateMerchant;
-using Application.Merchants.Command.DeactivateMerchant;
-using Application.Merchants.Command.SuspendMerchant;
-using Application.Merchants.Command.UpdateMerchant;
-using Application.Merchants.Query.GetAllMerchant;
-using Application.Merchants.Query.GetMerchantById;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API.Controllers
+using PaySplit.API.Dto.Common;
+using PaySplit.API.Dto.Merchants;
+using PaySplit.Application.Common.Filter;
+using PaySplit.Application.Merchants.Command.ActivateMerchant;
+using PaySplit.Application.Merchants.Command.CreateMerchant;
+using PaySplit.Application.Merchants.Command.DeactivateMerchant;
+using PaySplit.Application.Merchants.Command.SuspendMerchant;
+using PaySplit.Application.Merchants.Command.UpdateMerchant;
+using PaySplit.Application.Merchants.Query.GetAllMerchant;
+using PaySplit.Application.Merchants.Query.GetMerchantById;
+
+namespace PaySplit.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

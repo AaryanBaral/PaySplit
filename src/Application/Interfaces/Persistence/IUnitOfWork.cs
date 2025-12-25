@@ -1,4 +1,4 @@
-namespace Application.Interfaces.Presistence
+namespace PaySplit.Application.Interfaces.Persistence
 {
     public interface IUnitOfWork
     {

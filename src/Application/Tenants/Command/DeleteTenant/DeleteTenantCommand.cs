@@ -1,6 +1,6 @@
 
 
-namespace Application.Tenants.Command.DeleteTenant
+namespace PaySplit.Application.Tenants.Command.DeleteTenant
 {
     public class DeleteTenantCommand
     {

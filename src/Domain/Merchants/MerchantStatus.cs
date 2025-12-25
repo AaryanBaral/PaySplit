@@ -1,4 +1,4 @@
-namespace Domain.Merchants
+namespace PaySplit.Domain.Merchants
 {
     public enum MerchantStatus
     {

@@ -1,17 +1,16 @@
-using Application.Common.Abstractions;
-using Application.Common.Results;
-using Application.Interfaces.Presistence;
-using Microsoft.EntityFrameworkCore;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+using PaySplit.Application.Interfaces.Repository;
 
-namespace Application.Merchants.Query.GetMerchantById
+namespace PaySplit.Application.Merchants.Query.GetMerchantById
 {
     public class GetMerchantByIdHandler : IQueryHandler<GetMerchantByIdQuery, Result<GetMerchantByIdDto>>
     {
-        private readonly IApplicationDbContext _db;
+        private readonly IMerchantRepository _repository;
 
-        public GetMerchantByIdHandler(IApplicationDbContext db)
+        public GetMerchantByIdHandler(IMerchantRepository repository)
         {
-            _db = db;
+            _repository = repository;
         }
 
         public async Task<Result<GetMerchantByIdDto>> HandleAsync(GetMerchantByIdQuery query, CancellationToken cancellationToken = default)
@@ -21,27 +20,25 @@ namespace Application.Merchants.Query.GetMerchantById
                 return Result<GetMerchantByIdDto>.Failure("Merchant id is required.");
             }
 
-            var merchant = await _db.Merchants
-                .AsNoTracking()
-                .Where(m => m.Id == query.Id)
-                .Select(m => new GetMerchantByIdDto(
-                    m.Id,
-                    m.TenantId,
-                    m.Name,
-                    m.Email,
-                    m.RevenueShare.Value,
-                    m.Status.ToString(),
-                    m.CreatedAtUtc,
-                    m.DeactivatedAtUtc,
-                    m.SuspendedAtUtc))
-                .FirstOrDefaultAsync(cancellationToken);
+            var merchant = await _repository.GetByIdAsync(query.Id, cancellationToken);
 
             if (merchant is null)
             {
                 return Result<GetMerchantByIdDto>.Failure("Merchant not found");
             }
 
-            return Result<GetMerchantByIdDto>.Success(merchant);
+            var dto = new GetMerchantByIdDto(
+                merchant.Id,
+                merchant.TenantId,
+                merchant.Name,
+                merchant.Email,
+                merchant.RevenueShare.Value,
+                merchant.Status.ToString(),
+                merchant.CreatedAtUtc,
+                merchant.DeactivatedAtUtc,
+                merchant.SuspendedAtUtc);
+
+            return Result<GetMerchantByIdDto>.Success(dto);
         }
     }
 }

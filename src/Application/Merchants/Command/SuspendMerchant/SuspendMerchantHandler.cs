@@ -1,10 +1,10 @@
-using Application.Common.Abstractions;
-using Application.Common.Results;
-using Application.Interfaces.Presistence;
-using Application.Interfaces.Repository;
-using Domain.Merchant;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+using PaySplit.Application.Interfaces.Persistence;
+using PaySplit.Application.Interfaces.Repository;
+using PaySplit.Domain.Merchants;
 
-namespace Application.Merchants.Command.SuspendMerchant
+namespace PaySplit.Application.Merchants.Command.SuspendMerchant
 {
     public class SuspendMerchantHandler : ICommandHandler<SuspendMerchantCommand, Result<SuspendMerchantResult>>
     {

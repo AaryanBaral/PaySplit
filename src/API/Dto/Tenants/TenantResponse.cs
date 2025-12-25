@@ -1,4 +1,4 @@
-namespace API.Dto.Tenants
+namespace PaySplit.API.Dto.Tenants
 {
     public class TenantResponse
     {

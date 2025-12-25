@@ -1,17 +1,18 @@
-using API.Dto.Common;
-using API.Dto.Tenants;
-using Application.Common.Filter;
-using Application.Common.Results;
-using Application.Tenants.Command.ActivateTenant;
-using Application.Tenants.Command.CreateTenant;
-using Application.Tenants.Command.DeactivateTenant;
-using Application.Tenants.Command.SuspendTenant;
-using Application.Tenants.Command.UpdateTenant;
-using Application.Tenants.Query.GetAllTenant;
-using Application.Tenants.Query.GetTenantById;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API.Controllers
+using PaySplit.API.Dto.Common;
+using PaySplit.API.Dto.Tenants;
+using PaySplit.Application.Common.Filter;
+using PaySplit.Application.Common.Results;
+using PaySplit.Application.Tenants.Command.ActivateTenant;
+using PaySplit.Application.Tenants.Command.CreateTenant;
+using PaySplit.Application.Tenants.Command.DeactivateTenant;
+using PaySplit.Application.Tenants.Command.SuspendTenant;
+using PaySplit.Application.Tenants.Command.UpdateTenant;
+using PaySplit.Application.Tenants.Query.GetAllTenant;
+using PaySplit.Application.Tenants.Query.GetTenantById;
+
+namespace PaySplit.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

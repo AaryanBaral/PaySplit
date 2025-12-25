@@ -1,8 +1,9 @@
-using Domain.Merchant;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Persistence.Configurations
+using PaySplit.Domain.Merchants;
+
+namespace PaySplit.Infrastructure.Persistence.Configurations
 {
     public class MerchantConfiguration : IEntityTypeConfiguration<Merchant>
     {

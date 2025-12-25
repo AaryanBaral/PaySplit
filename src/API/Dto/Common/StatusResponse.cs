@@ -1,4 +1,4 @@
-namespace API.Dto.Common
+namespace PaySplit.API.Dto.Common
 {
     public class StatusResponse
     {

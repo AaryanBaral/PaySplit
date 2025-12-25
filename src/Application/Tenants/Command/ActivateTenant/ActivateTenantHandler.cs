@@ -1,11 +1,11 @@
 
-using Application.Common.Abstractions;
-using Application.Common.Results;
-using Application.Interfaces.Presistence;
-using Application.Interfaces.Repository;
-using Domain.Tenant;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+using PaySplit.Application.Interfaces.Persistence;
+using PaySplit.Application.Interfaces.Repository;
+using PaySplit.Domain.Tenants;
 
-namespace Application.Tenants.Command.ActivateTenant
+namespace PaySplit.Application.Tenants.Command.ActivateTenant
 {
     public class ActivateCommandHandler : ICommandHandler<ActivateTenantCommand, Result<ActivateTenantResult>>
     {

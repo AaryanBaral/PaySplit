@@ -1,11 +1,11 @@
-using Application.Interfaces.Presistence;
-using Domain.Merchant;
-using Domain.Tenant;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Persistence
+using PaySplit.Domain.Merchants;
+using PaySplit.Domain.Tenants;
+
+namespace PaySplit.Infrastructure.Persistence
 {
-    public class AppDbContext : DbContext, IApplicationDbContext, IUnitOfWork
+    public class AppDbContext : DbContext
     {
         public DbSet<Tenant> Tenants => Set<Tenant>();
         public DbSet<TenantUser> TenantUsers => Set<TenantUser>();
@@ -16,7 +16,6 @@ namespace Infrastructure.Persistence
         {
         }
 
-        // This is the IUnitOfWork implementation
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
             => base.SaveChangesAsync(cancellationToken);
 

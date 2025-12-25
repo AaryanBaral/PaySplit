@@ -1,6 +1,6 @@
 
 
-namespace Application.Tenants.Query.GetAllTenant
+namespace PaySplit.Application.Tenants.Query.GetAllTenant
 {
     public class GetAllTenantDto
     {

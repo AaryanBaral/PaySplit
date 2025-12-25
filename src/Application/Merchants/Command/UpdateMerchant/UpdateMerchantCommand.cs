@@ -1,7 +1,7 @@
-using Application.Common.Abstractions;
-using Application.Common.Results;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
 
-namespace Application.Merchants.Command.UpdateMerchant
+namespace PaySplit.Application.Merchants.Command.UpdateMerchant
 {
     public class UpdateMerchantCommand : ICommand<Result<UpdateMerchantResult>>
     {

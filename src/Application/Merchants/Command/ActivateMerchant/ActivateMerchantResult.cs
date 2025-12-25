@@ -1,4 +1,4 @@
-namespace Application.Merchants.Command.ActivateMerchant
+namespace PaySplit.Application.Merchants.Command.ActivateMerchant
 {
     public class ActivateMerchantResult
     {

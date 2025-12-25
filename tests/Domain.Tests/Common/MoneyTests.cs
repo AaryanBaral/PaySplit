@@ -1,7 +1,8 @@
-using Domain.Common;
+using PaySplit.Domain.Common;
+
 using Xunit;
 
-namespace Domain.Tests.Common
+namespace PaySplit.Domain.Tests.Common
 {
     public class MoneyTests
     {

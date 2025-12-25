@@ -1,4 +1,4 @@
-namespace Application.Common.Abstractions
+namespace PaySplit.Application.Common.Abstractions
 {
     public interface ICommandHandler<TCommand, TResult> where TCommand : ICommand<TResult>
     {

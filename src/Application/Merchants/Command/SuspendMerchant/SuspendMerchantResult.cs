@@ -1,4 +1,4 @@
-namespace Application.Merchants.Command.SuspendMerchant
+namespace PaySplit.Application.Merchants.Command.SuspendMerchant
 {
     public class SuspendMerchantResult
     {

@@ -1,4 +1,4 @@
-namespace Application.Merchants.Command.UpdateMerchant
+namespace PaySplit.Application.Merchants.Command.UpdateMerchant
 {
     public class UpdateMerchantResult
     {

@@ -1,4 +1,4 @@
-namespace Application.Merchants.Command.DeactivateMerchant
+namespace PaySplit.Application.Merchants.Command.DeactivateMerchant
 {
     public class DeactivateMerchantResult
     {

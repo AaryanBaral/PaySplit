@@ -1,8 +1,8 @@
 
-using Application.Common.Abstractions;
-using Application.Common.Results;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
 
-namespace Application.Tenants.Query.GetTenantById
+namespace PaySplit.Application.Tenants.Query.GetTenantById
 {
     public class GetTenantByIdQuery : IQuery<Result<GetTenantByIdDto>>
     {

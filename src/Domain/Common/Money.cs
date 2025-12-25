@@ -1,4 +1,4 @@
-namespace Domain.Common
+namespace PaySplit.Domain.Common
 {
     public class Money : ValueObject
     {
@@ -42,6 +42,16 @@ namespace Domain.Common
             }
             var resultAmount = Amount - another.Amount;
             return new Money(Currency, resultAmount);
+        }
+        public Money Multiply(decimal factor)
+        {
+            if (factor < 0)
+            {
+                throw new ArgumentException("Factor cannot be negative.", nameof(factor));
+            }
+
+            var result = Amount * factor;
+            return new Money(Currency, result);
         }
         public Money Add(Money another)
         {

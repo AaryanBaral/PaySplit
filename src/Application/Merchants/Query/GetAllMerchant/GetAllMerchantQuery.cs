@@ -1,8 +1,8 @@
-using Application.Common.Abstractions;
-using Application.Common.Filter;
-using Application.Common.Results;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Filter;
+using PaySplit.Application.Common.Results;
 
-namespace Application.Merchants.Query.GetAllMerchant
+namespace PaySplit.Application.Merchants.Query.GetAllMerchant
 {
     public class GetAllMerchantQuery : IQuery<Result<List<GetAllMerchantDto>>>
     {

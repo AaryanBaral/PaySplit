@@ -1,4 +1,4 @@
-namespace Application.Merchants.Query.GetAllMerchant
+namespace PaySplit.Application.Merchants.Query.GetAllMerchant
 {
     public class GetAllMerchantDto
     {

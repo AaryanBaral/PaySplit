@@ -1,9 +1,11 @@
-using Domain.Tenant;
+using PaySplit.Application.Common.Filter;
+using PaySplit.Domain.Tenants;
 
-namespace Application.Interfaces.Repository;
+namespace PaySplit.Application.Interfaces.Repository;
 
 public interface ITenantRepository
 {
-    Task<Tenant?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task AddAsync(Tenant tenant, CancellationToken cancellationToken);
+    Task<Tenant?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task AddAsync(Tenant tenant, CancellationToken ct = default);
+    Task<List<Tenant>> GetAllAsync(PaginationFilter filter, CancellationToken ct = default);
 }

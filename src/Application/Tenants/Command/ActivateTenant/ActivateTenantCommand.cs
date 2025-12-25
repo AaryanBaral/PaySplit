@@ -1,9 +1,9 @@
 
 
-using Application.Common.Abstractions;
-using Application.Common.Results;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
 
-namespace Application.Tenants.Command.ActivateTenant
+namespace PaySplit.Application.Tenants.Command.ActivateTenant
 {
     public class ActivateTenantCommand : ICommand<Result<ActivateTenantResult>>
     {

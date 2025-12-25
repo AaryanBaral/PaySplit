@@ -1,6 +1,6 @@
 
 
-namespace Application.Tenants.Command.UpdateTenant
+namespace PaySplit.Application.Tenants.Command.UpdateTenant
 {
     public class RenameTenantResult
     {

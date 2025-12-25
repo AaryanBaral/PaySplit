@@ -1,11 +1,12 @@
-using Application.Common.Abstractions;
-using Application.Common.Results;
-using Application.Interfaces.Presistence;
-using Application.Interfaces.Repository;
-using Domain.Merchant;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Merchants.Command.CreateMerchant
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+using PaySplit.Application.Interfaces.Persistence;
+using PaySplit.Application.Interfaces.Repository;
+using PaySplit.Domain.Merchants;
+
+namespace PaySplit.Application.Merchants.Command.CreateMerchant
 {
     public class CreateMerchantHandler : ICommandHandler<CreateMerchantCommand, Result<CreateMerchantResult>>
     {

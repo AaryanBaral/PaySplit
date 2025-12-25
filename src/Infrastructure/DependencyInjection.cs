@@ -1,11 +1,13 @@
-using Application.Interfaces.Presistence;
-using Application.Interfaces.Repository;
-using Infrastructure.Persistence;
-using Infrastructure.Persistence.Repository;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
+using PaySplit.Application.Interfaces.Persistence;
+using PaySplit.Application.Interfaces.Repository;
+using PaySplit.Infrastructure.Persistence;
+using PaySplit.Infrastructure.Persistence.Repositories;
 
 namespace PaySplit.Infrastructure;
 
@@ -20,7 +22,7 @@ public static class DependencyInjection
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
             var connectionString = configuration.GetConnectionString("DefaultConnection");
             options
-                .UseSqlServer(connectionString)
+                .UseNpgsql(connectionString)
                 .UseLoggerFactory(loggerFactory);
 
             if (IsDevelopmentEnvironment())
@@ -30,8 +32,7 @@ public static class DependencyInjection
             }
         });
 
-        services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AppDbContext>());
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IMerchantRepository, MerchantRepository>();
 

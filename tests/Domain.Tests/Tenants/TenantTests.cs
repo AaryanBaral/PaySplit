@@ -1,7 +1,8 @@
-using Domain.Tenants;
+using PaySplit.Domain.Tenants;
+
 using Xunit;
 
-namespace Domain.Tests.Tenants
+namespace PaySplit.Domain.Tests.Tenants
 {
     public class TenantTests
     {
@@ -22,7 +23,7 @@ namespace Domain.Tests.Tenants
 
             Assert.Equal(TenantStatus.Inactive, tenant.Status);
             Assert.NotNull(tenant.DeactivatedAtUtc);
-            Assert.Null(tenant.SuspendedAtUTC);
+            Assert.Null(tenant.SuspendedAtUtc);
         }
 
         [Fact]
@@ -33,7 +34,7 @@ namespace Domain.Tests.Tenants
             tenant.Suspend();
 
             Assert.Equal(TenantStatus.Suspended, tenant.Status);
-            Assert.NotNull(tenant.SuspendedAtUTC);
+            Assert.NotNull(tenant.SuspendedAtUtc);
             Assert.Null(tenant.DeactivatedAtUtc);
         }
 
@@ -47,7 +48,7 @@ namespace Domain.Tests.Tenants
 
             Assert.Equal(TenantStatus.Active, tenant.Status);
             Assert.Null(tenant.DeactivatedAtUtc);
-            Assert.Null(tenant.SuspendedAtUTC);
+            Assert.Null(tenant.SuspendedAtUtc);
         }
     }
 }

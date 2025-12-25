@@ -1,6 +1,6 @@
-using Domain.Merchant;
+using PaySplit.Domain.Merchants;
 
-namespace Application.Merchants.Command.CreateMerchant
+namespace PaySplit.Application.Merchants.Command.CreateMerchant
 {
     public class CreateMerchantResult
     {

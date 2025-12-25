@@ -1,6 +1,6 @@
-using Domain.Tenant;
+using PaySplit.Domain.Tenants;
 
-namespace Application.Tenants.Command.CreateTenant
+namespace PaySplit.Application.Tenants.Command.CreateTenant
 {
     public class CreateTenantResult
     {

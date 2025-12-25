@@ -1,6 +1,6 @@
 
 
-namespace Application.Common.Abstractions
+namespace PaySplit.Application.Common.Abstractions
 {
     public interface IQuery<TResult>
     {

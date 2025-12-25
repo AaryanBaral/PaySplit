@@ -1,6 +1,6 @@
 
 
-namespace Application.Common.Results
+namespace PaySplit.Application.Common.Results
 {
     public class Result
     {

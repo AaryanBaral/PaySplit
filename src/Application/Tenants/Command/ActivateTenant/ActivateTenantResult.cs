@@ -1,8 +1,8 @@
 
 
-using Domain.Tenant;
+using PaySplit.Domain.Tenants;
 
-namespace Application.Tenants.Command.ActivateTenant
+namespace PaySplit.Application.Tenants.Command.ActivateTenant
 {
     public class ActivateTenantResult
     {

@@ -1,59 +1,32 @@
-using Application.Common.Abstractions;
-using Application.Common.Results;
-using Application.Interfaces.Presistence;
-using Microsoft.EntityFrameworkCore;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+using PaySplit.Application.Interfaces.Repository;
 
-namespace Application.Tenants.Query.GetAllTenant
+namespace PaySplit.Application.Tenants.Query.GetAllTenant
 {
     public class GetAllTenantHandler : IQueryHandler<GetAllTenantQuery, Result<List<GetAllTenantDto>>>
     {
-        private readonly IApplicationDbContext _db;
-        public GetAllTenantHandler(IApplicationDbContext db)
+        private readonly ITenantRepository _repository;
+        public GetAllTenantHandler(ITenantRepository repository)
         {
-            _db = db;
+            _repository = repository;
         }
 
         public async Task<Result<List<GetAllTenantDto>>> HandleAsync(GetAllTenantQuery query, CancellationToken cancellationToken = default)
         {
             var filter = query.PaginationFilter;
 
-            var dbQuery = _db.Tenants
-                .AsNoTracking()          // no tracking → lighter memory usage
-                .AsQueryable();
+            var tenants = await _repository.GetAllAsync(filter, cancellationToken);
 
-            //  Search by name (case-insensitive), only if search is provided
-            if (!string.IsNullOrWhiteSpace(filter.Search))
-            {
-                var search = filter.Search.Trim().ToLower();
-
-                dbQuery = dbQuery.Where(t =>
-                    t.Name.ToLower().Contains(search));
-            }
-
-            //  Filter by status, only if provided
-            if (!string.IsNullOrWhiteSpace(filter.Status))
-            {
-                dbQuery = dbQuery.Where(t =>
-                    t.Status.ToString() == filter.Status);
-            }
-
-            // Paging 
-            var skip = (filter.Page - 1) * filter.PageSize;
-
-            var tenants = await dbQuery
-                .OrderBy(t => t.CreatedAtUtc)
-                .Skip(skip)
-                .Take(filter.PageSize)
+            var result = tenants
                 .Select(t => new GetAllTenantDto(
                     t.Id,
                     t.Name,
                     t.Status.ToString(),
                     t.CreatedAtUtc))
-                .ToListAsync(cancellationToken);
+                .ToList();
 
-            return Result<List<GetAllTenantDto>>.Success(tenants);
-
-
+            return Result<List<GetAllTenantDto>>.Success(result);
         }
     }
 }

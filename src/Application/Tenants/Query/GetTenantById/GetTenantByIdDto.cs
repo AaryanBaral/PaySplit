@@ -1,5 +1,5 @@
 
-namespace Application.Tenants.Query.GetTenantById
+namespace PaySplit.Application.Tenants.Query.GetTenantById
 {
     public class GetTenantByIdDto
     {

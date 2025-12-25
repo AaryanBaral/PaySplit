@@ -1,4 +1,4 @@
-namespace Domain.Common
+namespace PaySplit.Domain.Common
 {
     public class Entity
     {

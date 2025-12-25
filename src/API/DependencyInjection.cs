@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+
 using PaySplit.Application;
 using PaySplit.Infrastructure;
+
 using Serilog;
 
 namespace PaySplit.API;
@@ -23,16 +25,6 @@ public static class DependencyInjection
                 Title = "PaySplit API",
                 Version = "v1"
             });
-        });
-
-        var logger = new LoggerConfiguration()
-            .ReadFrom.Configuration(configuration)
-            .CreateLogger();
-
-        services.AddLogging(loggingBuilder =>
-        {
-            loggingBuilder.ClearProviders();
-            loggingBuilder.AddSerilog(logger, dispose: true);
         });
 
         services.AddApplication();

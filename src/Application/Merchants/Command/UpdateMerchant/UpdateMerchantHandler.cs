@@ -1,9 +1,9 @@
-using Application.Common.Abstractions;
-using Application.Common.Results;
-using Application.Interfaces.Presistence;
-using Application.Interfaces.Repository;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+using PaySplit.Application.Interfaces.Persistence;
+using PaySplit.Application.Interfaces.Repository;
 
-namespace Application.Merchants.Command.UpdateMerchant
+namespace PaySplit.Application.Merchants.Command.UpdateMerchant
 {
     public class UpdateMerchantHandler : ICommandHandler<UpdateMerchantCommand, Result<UpdateMerchantResult>>
     {

@@ -1,4 +1,4 @@
-namespace Domain.Tenants
+namespace PaySplit.Domain.Tenants
 {
     public enum TenantUserStatus
     {

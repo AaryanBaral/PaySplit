@@ -1,3 +1,0 @@
-now on delete tenant , make this and move fordward with the query part.
-
-then do testing for domain write test cases.
