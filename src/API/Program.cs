@@ -21,58 +21,78 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((context, services, configuration) =>
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
+
+try
 {
-    configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext();
-});
+    Log.Information("Starting PaySplit API...");
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+    builder.Host.UseSerilog();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseSqlServer(connectionString);
-});
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
 
-// Persistence and repositories
-builder.Services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AppDbContext>());
-builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
-builder.Services.AddScoped<ITenantRepository, TenantRepository>();
-builder.Services.AddScoped<IMerchantRepository, MerchantRepository>();
+    builder.Services.AddDbContext<AppDbContext>((sp, options) =>
+    {
+        var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        options
+            .UseSqlServer(connectionString)
+            .UseLoggerFactory(loggerFactory);
 
-// Tenant handlers
-builder.Services.AddScoped<CreateTenantHandler>();
-builder.Services.AddScoped<ActivateCommandHandler>();
-builder.Services.AddScoped<DeactivateCommandHandler>();
-builder.Services.AddScoped<SuspendCommandHandler>();
-builder.Services.AddScoped<UpdateCommandHandler>();
-builder.Services.AddScoped<GetAllTenantHandler>();
-builder.Services.AddScoped<GetTenantByIdHandler>();
+        if (builder.Environment.IsDevelopment())
+        {
+            options.EnableSensitiveDataLogging();
+            options.EnableDetailedErrors();
+        }
+    });
 
-// Merchant handlers
-builder.Services.AddScoped<CreateMerchantHandler>();
-builder.Services.AddScoped<UpdateMerchantHandler>();
-builder.Services.AddScoped<ActivateMerchantHandler>();
-builder.Services.AddScoped<DeactivateMerchantHandler>();
-builder.Services.AddScoped<SuspendMerchantHandler>();
-builder.Services.AddScoped<GetAllMerchantHandler>();
-builder.Services.AddScoped<GetMerchantByIdHandler>();
+    // Persistence and repositories
+    builder.Services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+    builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
+    builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+    builder.Services.AddScoped<IMerchantRepository, MerchantRepository>();
 
-var app = builder.Build();
+    // Tenant handlers
+    builder.Services.AddScoped<CreateTenantHandler>();
+    builder.Services.AddScoped<ActivateCommandHandler>();
+    builder.Services.AddScoped<DeactivateCommandHandler>();
+    builder.Services.AddScoped<SuspendCommandHandler>();
+    builder.Services.AddScoped<UpdateCommandHandler>();
+    builder.Services.AddScoped<GetAllTenantHandler>();
+    builder.Services.AddScoped<GetTenantByIdHandler>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Merchant handlers
+    builder.Services.AddScoped<CreateMerchantHandler>();
+    builder.Services.AddScoped<UpdateMerchantHandler>();
+    builder.Services.AddScoped<ActivateMerchantHandler>();
+    builder.Services.AddScoped<DeactivateMerchantHandler>();
+    builder.Services.AddScoped<SuspendMerchantHandler>();
+    builder.Services.AddScoped<GetAllMerchantHandler>();
+    builder.Services.AddScoped<GetMerchantByIdHandler>();
+
+    var app = builder.Build();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseSerilogRequestLogging();
+    app.UseHttpsRedirection();
+    app.MapControllers();
+
+    app.Run();
 }
-
-app.UseSerilogRequestLogging();
-app.UseHttpsRedirection();
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

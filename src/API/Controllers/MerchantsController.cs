@@ -16,7 +16,6 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class MerchantsController : ControllerBase
     {
-        private readonly ILogger<MerchantsController> _logger;
         private readonly CreateMerchantHandler _createHandler;
         private readonly UpdateMerchantHandler _updateHandler;
         private readonly ActivateMerchantHandler _activateHandler;
@@ -26,7 +25,6 @@ namespace API.Controllers
         private readonly GetMerchantByIdHandler _getByIdHandler;
 
         public MerchantsController(
-            ILogger<MerchantsController> logger,
             CreateMerchantHandler createHandler,
             UpdateMerchantHandler updateHandler,
             ActivateMerchantHandler activateHandler,
@@ -35,7 +33,6 @@ namespace API.Controllers
             GetAllMerchantHandler getAllHandler,
             GetMerchantByIdHandler getByIdHandler)
         {
-            _logger = logger;
             _createHandler = createHandler;
             _updateHandler = updateHandler;
             _activateHandler = activateHandler;
@@ -48,7 +45,6 @@ namespace API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateMerchant([FromBody] CreateMerchantRequest request, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Creating merchant for tenant {TenantId}", request.TenantId);
             var command = new CreateMerchantCommand(
                 request.TenantId,
                 request.Name,
@@ -59,7 +55,6 @@ namespace API.Controllers
 
             if (result.IsFailure)
             {
-                _logger.LogWarning("Create merchant failed: {Error}", result.Error);
                 return BadRequest(result.Error);
             }
 
@@ -80,7 +75,6 @@ namespace API.Controllers
             [FromQuery] int pageSize = 20,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Fetching merchants page {Page} size {PageSize}", page, pageSize);
             var filter = new PaginationFilter
             {
                 Search = search,
@@ -94,7 +88,6 @@ namespace API.Controllers
 
             if (result.IsFailure)
             {
-                _logger.LogWarning("Get merchants failed: {Error}", result.Error);
                 return BadRequest(result.Error);
             }
 
@@ -115,13 +108,11 @@ namespace API.Controllers
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetMerchantById(Guid id, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Fetching merchant {MerchantId}", id);
             var query = new GetMerchantByIdQuery(id);
             var result = await _getByIdHandler.HandleAsync(query, cancellationToken);
 
             if (result.IsFailure)
             {
-                _logger.LogWarning("Merchant {MerchantId} not found: {Error}", id, result.Error);
                 return NotFound(result.Error);
             }
 
@@ -146,7 +137,6 @@ namespace API.Controllers
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> UpdateMerchant(Guid id, [FromBody] UpdateMerchantRequest request, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Updating merchant {MerchantId}", id);
             var command = new UpdateMerchantCommand(
                 id,
                 request.Name,
@@ -157,7 +147,6 @@ namespace API.Controllers
 
             if (result.IsFailure)
             {
-                _logger.LogWarning("Update merchant {MerchantId} failed: {Error}", id, result.Error);
                 return BadRequest(result.Error);
             }
 
@@ -177,13 +166,11 @@ namespace API.Controllers
         [HttpPost("{id:guid}/activate")]
         public async Task<IActionResult> ActivateMerchant(Guid id, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Activating merchant {MerchantId}", id);
             var command = new ActivateMerchantCommand(id);
             var result = await _activateHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {
-                _logger.LogWarning("Activate merchant {MerchantId} failed: {Error}", id, result.Error);
                 return BadRequest(result.Error);
             }
 
@@ -199,13 +186,11 @@ namespace API.Controllers
         [HttpPost("{id:guid}/deactivate")]
         public async Task<IActionResult> DeactivateMerchant(Guid id, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Deactivating merchant {MerchantId}", id);
             var command = new DeactivateMerchantCommand(id);
             var result = await _deactivateHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {
-                _logger.LogWarning("Deactivate merchant {MerchantId} failed: {Error}", id, result.Error);
                 return BadRequest(result.Error);
             }
 
@@ -221,13 +206,11 @@ namespace API.Controllers
         [HttpPost("{id:guid}/suspend")]
         public async Task<IActionResult> SuspendMerchant(Guid id, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Suspending merchant {MerchantId}", id);
             var command = new SuspendMerchantCommand(id);
             var result = await _suspendHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {
-                _logger.LogWarning("Suspend merchant {MerchantId} failed: {Error}", id, result.Error);
                 return BadRequest(result.Error);
             }
 
