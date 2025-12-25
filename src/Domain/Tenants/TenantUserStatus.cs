@@ -1,4 +1,4 @@
-namespace Domain.Tenant
+namespace Domain.Tenants
 {
     public enum TenantUserStatus
     {

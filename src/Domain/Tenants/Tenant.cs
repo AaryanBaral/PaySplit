@@ -1,6 +1,6 @@
 using Domain.Common;
 
-namespace Domain.Tenant
+namespace Domain.Tenants
 {
     public class Tenant : Entity
     {
@@ -20,14 +20,13 @@ namespace Domain.Tenant
             }
             Name = name.Trim();
             CreatedAtUtc = createdAtUtc;
-            DeactivatedAtUtc = null;
-            SuspendedAtUTC = null;
             Status = status;
+            ApplyStatusTimestamps(status);
         }
 
-        public static Tenant Create(string name, DateTimeOffset createdAtUtc, TenantStatus status = TenantStatus.Active)
+        public static Tenant Create(string name)
         {
-            return new Tenant(name, createdAtUtc, status);
+            return new Tenant(name, DateTimeOffset.UtcNow, TenantStatus.Active);
         }
         public void Rename(string newName)
         {
@@ -41,18 +40,45 @@ namespace Domain.Tenant
             if (Status == TenantStatus.Inactive)
                 throw new InvalidOperationException("Tenant is already Inactive.");
             Status = TenantStatus.Inactive;
+            DeactivatedAtUtc = DateTimeOffset.UtcNow;
+            SuspendedAtUTC = null;
         }
         public void Activate()
         {
             if (Status == TenantStatus.Active)
                 throw new InvalidOperationException("Tenant is already Active.");
             Status = TenantStatus.Active;
+            DeactivatedAtUtc = null;
+            SuspendedAtUTC = null;
         }
         public void Suspend()
         {
             if (Status == TenantStatus.Suspended)
                 throw new InvalidOperationException("Tenant is already Suspended.");
             Status = TenantStatus.Suspended;
+            SuspendedAtUTC = DateTimeOffset.UtcNow;
+            DeactivatedAtUtc = null;
+        }
+
+        private void ApplyStatusTimestamps(TenantStatus status)
+        {
+            switch (status)
+            {
+                case TenantStatus.Active:
+                    DeactivatedAtUtc = null;
+                    SuspendedAtUTC = null;
+                    break;
+                case TenantStatus.Inactive:
+                    DeactivatedAtUtc = DateTimeOffset.UtcNow;
+                    SuspendedAtUTC = null;
+                    break;
+                case TenantStatus.Suspended:
+                    SuspendedAtUTC = DateTimeOffset.UtcNow;
+                    DeactivatedAtUtc = null;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(status), "Invalid tenant status.");
+            }
         }
 
     }

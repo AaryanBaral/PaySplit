@@ -3,6 +3,7 @@ using Application.Common.Results;
 using Application.Interfaces.Presistence;
 using Application.Interfaces.Repository;
 using Domain.Merchant;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Merchants.Command.CreateMerchant
 {
@@ -10,38 +11,24 @@ namespace Application.Merchants.Command.CreateMerchant
     {
         private readonly IMerchantRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<CreateMerchantHandler> _logger;
 
-        public CreateMerchantHandler(IMerchantRepository repository, IUnitOfWork unitOfWork)
+        public CreateMerchantHandler(IMerchantRepository repository, IUnitOfWork unitOfWork, ILogger<CreateMerchantHandler> logger)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
         public async Task<Result<CreateMerchantResult>> HandleAsync(CreateMerchantCommand command, CancellationToken cancellationToken = default)
         {
-            if (command.TenantId == Guid.Empty)
-            {
-                return Result<CreateMerchantResult>.Failure("Tenant id is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(command.Name))
-            {
-                return Result<CreateMerchantResult>.Failure("Merchant name is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(command.Email))
-            {
-                return Result<CreateMerchantResult>.Failure("Merchant email is required.");
-            }
-
-            if (command.RevenueSharePercentage <= 0 || command.RevenueSharePercentage >= 100)
-            {
-                return Result<CreateMerchantResult>.Failure("Revenue share percentage must be between 0 and 100 (exclusive).");
-            }
-
             Merchant merchant;
             try
             {
+                _logger.LogInformation(
+                    "Creating merchant for tenant {TenantId} with revenue share {RevenueSharePercentage}",
+                    command.TenantId,
+                    command.RevenueSharePercentage);
                 merchant = Merchant.Create(
                     command.TenantId,
                     command.Name,
@@ -50,6 +37,7 @@ namespace Application.Merchants.Command.CreateMerchant
             }
             catch (ArgumentException ex)
             {
+                _logger.LogWarning("Create merchant failed: {Error}", ex.Message);
                 return Result<CreateMerchantResult>.Failure(ex.Message);
             }
 
@@ -61,6 +49,7 @@ namespace Application.Merchants.Command.CreateMerchant
                 merchant.TenantId,
                 merchant.Status.ToString());
 
+            _logger.LogInformation("Merchant created {MerchantId} with status {Status}", merchant.Id, merchant.Status);
             return Result<CreateMerchantResult>.Success(result);
         }
     }

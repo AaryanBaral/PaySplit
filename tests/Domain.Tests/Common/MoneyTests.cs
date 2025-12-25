@@ -31,9 +31,9 @@ namespace Domain.Tests.Common
         }
 
         [Fact]
-        public void CreteZreo_ShouldReturnZeroAmount()
+        public void CreateZero_ShouldReturnZeroAmount()
         {
-            var money = Money.CreateZreo("USD");
+            var money = Money.CreateZero("USD");
 
             Assert.Equal("USD", money.Currency);
             Assert.Equal(0m, money.Amount);
@@ -49,6 +49,14 @@ namespace Domain.Tests.Common
 
             Assert.Equal("USD", result.Currency);
             Assert.Equal(15m, result.Amount);
+        }
+
+        [Fact]
+        public void Create_ShouldNormalizeCurrency()
+        {
+            var money = Money.Create(" usd ", 1m);
+
+            Assert.Equal("USD", money.Currency);
         }
 
         [Fact]

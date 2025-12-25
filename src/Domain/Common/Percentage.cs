@@ -4,14 +4,13 @@ namespace Domain.Common
 {
     public class Percentage : ValueObject
     {
-        public decimal Value { get; protected set; }
+        public decimal Value { get; private set; }
 
         private Percentage() { }
 
         private Percentage(decimal value)
         {
-            this.Value = value;
-
+            Value = value;
         }
 
         public static Percentage Create(decimal value)

@@ -1,10 +1,9 @@
-namespace Domain.Merchant
+namespace Domain.Tenants
 {
-    public enum MerchantStatus
+    public enum TenantStatus
     {
         Active = 1,
         Inactive = 2,
         Suspended = 3
-
     }
 }

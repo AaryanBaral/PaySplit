@@ -1,6 +1,6 @@
 using Domain.Common;
 
-namespace Domain.Tenant
+namespace Domain.Tenants
 {
     public class TenantUser : Entity
     {
@@ -22,6 +22,9 @@ namespace Domain.Tenant
             DateTimeOffset joinedAtUtc, TenantUserStatus status)
             : base()
         {
+            if (tenantId == Guid.Empty)
+                throw new ArgumentException("Tenant id is required.", nameof(tenantId));
+
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email is required.", nameof(email));
 

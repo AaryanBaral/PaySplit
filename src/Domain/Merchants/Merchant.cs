@@ -1,7 +1,7 @@
 
 using Domain.Common;
 
-namespace Domain.Merchant
+namespace Domain.Merchants
 {
     public class Merchant : Entity
     {
@@ -24,6 +24,9 @@ namespace Domain.Merchant
             DateTimeOffset createdAtUtc,
             MerchantStatus status) : base()
         {
+            if (tenantId == Guid.Empty)
+                throw new ArgumentException("Tenant id is required.", nameof(tenantId));
+
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Merchant name is required.", nameof(name));
 
@@ -35,8 +38,7 @@ namespace Domain.Merchant
             Status = status;
             Email = email.Trim().ToLowerInvariant();
             CreatedAtUtc = createdAtUtc;
-            DeactivatedAtUtc = null;
-            SuspendedAtUtc = null;
+            ApplyStatusTimestamps(status);
         }
         public static Merchant Create(
             Guid tenantId,
@@ -85,7 +87,28 @@ namespace Domain.Merchant
                 throw new InvalidOperationException("Merchant is already Suspended.");
             Status = MerchantStatus.Suspended;
             SuspendedAtUtc = DateTimeOffset.UtcNow;
+            DeactivatedAtUtc = null;
         }
 
+        private void ApplyStatusTimestamps(MerchantStatus status)
+        {
+            switch (status)
+            {
+                case MerchantStatus.Active:
+                    DeactivatedAtUtc = null;
+                    SuspendedAtUtc = null;
+                    break;
+                case MerchantStatus.Inactive:
+                    DeactivatedAtUtc = DateTimeOffset.UtcNow;
+                    SuspendedAtUtc = null;
+                    break;
+                case MerchantStatus.Suspended:
+                    SuspendedAtUtc = DateTimeOffset.UtcNow;
+                    DeactivatedAtUtc = null;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(status), "Invalid merchant status.");
+            }
+        }
     }
 }

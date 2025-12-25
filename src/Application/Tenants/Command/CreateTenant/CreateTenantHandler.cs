@@ -3,6 +3,7 @@ using Application.Common.Results;
 using Application.Interfaces.Presistence;
 using Application.Interfaces.Repository;
 using Domain.Tenant;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Tenants.Command.CreateTenant
 {
@@ -10,28 +11,25 @@ namespace Application.Tenants.Command.CreateTenant
     {
         private readonly ITenantRepository _repostory;
         private readonly IUnitOfWork _unitOfWork;
-        public CreateTenantHandler(ITenantRepository repository, IUnitOfWork unitOfWork)
+        private readonly ILogger<CreateTenantHandler> _logger;
+        public CreateTenantHandler(ITenantRepository repository, IUnitOfWork unitOfWork, ILogger<CreateTenantHandler> logger)
         {
             _repostory = repository;
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
         public async Task<Result<CreateTenantResult>> HandleAsync(CreateTenantCommand command, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(command.Name))
-            {
-                return Result<CreateTenantResult>.Failure("Tenant name is required.");
-            }
             Tenant tenant;
 
             try
             {
-                tenant = Tenant.Create(
-                    command.Name,
-                    DateTimeOffset.UtcNow
-                );
+                _logger.LogInformation("Creating tenant {TenantName}", command.Name);
+                tenant = Tenant.Create(command.Name);
             }
             catch (ArgumentException ex)
             {
+                _logger.LogWarning("Create tenant failed: {Error}", ex.Message);
                 return Result<CreateTenantResult>.Failure(ex.Message);
             }
 
@@ -42,6 +40,7 @@ namespace Application.Tenants.Command.CreateTenant
                 tenant.Id,
                 tenant.Status.ToString()
             );
+            _logger.LogInformation("Tenant created {TenantId} with status {Status}", tenant.Id, tenant.Status);
             return Result<CreateTenantResult>.Success(createTenantResult);
         }
     }

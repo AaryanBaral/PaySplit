@@ -2,8 +2,8 @@ namespace Domain.Common
 {
     public class Money : ValueObject
     {
-        public string Currency { get; protected set; } = default!;
-        public decimal Amount { get; protected set; }
+        public string Currency { get; private set; } = default!;
+        public decimal Amount { get; private set; }
 
         // Required by Ef Core
 
@@ -13,25 +13,25 @@ namespace Domain.Common
 
         private Money(string currency, decimal amount)
         {
-            this.Currency = currency;
-            this.Amount = amount;
+            Currency = currency;
+            Amount = amount;
         }
 
         public static Money Create(string currency, decimal amount)
         {
-            if (String.IsNullOrWhiteSpace(currency))
+            if (string.IsNullOrWhiteSpace(currency))
             {
                 throw new ArgumentException("Currency is required.", nameof(currency));
             }
             if (amount < 0)
             {
-                throw new ArgumentException("Amount Cannot be negative", nameof(currency));
+                throw new ArgumentException("Amount Cannot be negative", nameof(amount));
             }
 
-            return new Money(currency, amount);
+            return new Money(currency.Trim().ToUpperInvariant(), amount);
         }
 
-        public static Money CreateZreo(string currency) => Create(currency, 0m);
+        public static Money CreateZero(string currency) => Create(currency, 0m);
 
         public Money Subtract(Money another)
         {
@@ -46,7 +46,7 @@ namespace Domain.Common
         public Money Add(Money another)
         {
             EnsureSameCurrency(another);
-            return new Money(another.Currency, another.Amount + Amount);
+            return new Money(Currency, another.Amount + Amount);
         }
         private void EnsureSameCurrency(Money another)
         {
