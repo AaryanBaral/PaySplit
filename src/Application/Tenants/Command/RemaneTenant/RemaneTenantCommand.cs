@@ -7,10 +7,10 @@ using Application.Common.Results;
 
 namespace Application.Tenants.Command.UpdateTenant
 {
-    public class RenameTenantCommand:ICommand<Result<RenameTenantResult>>
+    public class RenameTenantCommand : ICommand<Result<RenameTenantResult>>
     {
-        public string Name {get;} 
-        public Guid Id {get;}
+        public string Name { get; }
+        public Guid Id { get; }
         public RenameTenantCommand(Guid id, string name)
         {
             Name = name;

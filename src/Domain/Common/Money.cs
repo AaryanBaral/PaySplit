@@ -2,14 +2,14 @@ namespace Domain.Common
 {
     public class Money : ValueObject
     {
-        public string Currency { get; protected set; }= default!;
+        public string Currency { get; protected set; } = default!;
         public decimal Amount { get; protected set; }
 
         // Required by Ef Core
-   
+
         private Money() { }
 
-       
+
 
         private Money(string currency, decimal amount)
         {
@@ -31,7 +31,7 @@ namespace Domain.Common
             return new Money(currency, amount);
         }
 
-        public static Money CreteZreo(string currency) => Create(currency, 0m);
+        public static Money CreateZreo(string currency) => Create(currency, 0m);
 
         public Money Subtract(Money another)
         {

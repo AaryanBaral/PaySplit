@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Tenants.Query.GetAllTenant
 {
-    public class GetAllTenantHandler: IQueryHandler<GetAllTenantQuery, Result<List<GetAllTenantDto>>>
+    public class GetAllTenantHandler : IQueryHandler<GetAllTenantQuery, Result<List<GetAllTenantDto>>>
     {
         private readonly IApplicationDbContext _db;
         public GetAllTenantHandler(IApplicationDbContext db)

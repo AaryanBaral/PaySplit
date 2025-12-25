@@ -2,7 +2,7 @@
 
 namespace Domain.Common
 {
-    public class Percentage: ValueObject
+    public class Percentage : ValueObject
     {
         public decimal Value { get; protected set; }
 

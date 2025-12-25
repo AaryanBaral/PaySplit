@@ -42,7 +42,7 @@ namespace Domain.Tenant
             string email,
             string displayName,
             TenantUserRole role,
-            DateTimeOffset joinedAtUtc, 
+            DateTimeOffset joinedAtUtc,
             TenantUserStatus status = TenantUserStatus.Active)
         {
             return new TenantUser(tenantId, email, displayName, role, joinedAtUtc, status);

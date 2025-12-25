@@ -25,7 +25,7 @@ namespace Domain.Tenant
             Status = status;
         }
 
-        public static Tenant Create(string name, DateTimeOffset createdAtUtc,TenantStatus status = TenantStatus.Active)
+        public static Tenant Create(string name, DateTimeOffset createdAtUtc, TenantStatus status = TenantStatus.Active)
         {
             return new Tenant(name, createdAtUtc, status);
         }

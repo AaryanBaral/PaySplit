@@ -35,9 +35,9 @@ namespace Domain.Common
 
         public override int GetHashCode()
         {
-        return GetEqualityComponents()
-            .Where(x => x is not null)
-            .Aggregate(0, (hash, value) => HashCode.Combine(hash, value));
+            return GetEqualityComponents()
+                .Where(x => x is not null)
+                .Aggregate(0, (hash, value) => HashCode.Combine(hash, value));
         }
     }
 }

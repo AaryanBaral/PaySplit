@@ -8,9 +8,9 @@ using Application.Common.Results;
 
 namespace Application.Tenants.Query.GetAllTenant
 {
-    public class GetAllTenantQuery:IQuery<Result<List<GetAllTenantDto>>>
+    public class GetAllTenantQuery : IQuery<Result<List<GetAllTenantDto>>>
     {
-        public PaginationFilter PaginationFilter{get;}
+        public PaginationFilter PaginationFilter { get; }
         public GetAllTenantQuery(PaginationFilter paginationFilter)
         {
             PaginationFilter = paginationFilter;

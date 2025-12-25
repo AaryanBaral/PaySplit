@@ -5,6 +5,6 @@ namespace Domain.Merchant
         Active = 1,
         Inactive = 2,
         Suspended = 3
-        
+
     }
 }
