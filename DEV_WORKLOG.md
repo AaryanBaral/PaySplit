@@ -33,4 +33,3 @@ next actions. Keep entries brief and focused on decision-making and state.
 - Next time start here:
 
 
-to do : now create test cases for new domain objects as, payment, payout and ledger.
