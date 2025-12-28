@@ -9,7 +9,7 @@ namespace PaySplit.Domain.Tests.Tenants
         [Fact]
         public void Create_WithEmptyName_ShouldThrow()
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => Tenant.Create(" "));
+            var exception = Assert.Throws<ArgumentNullException>(() => Tenant.Create(" ", "USD"));
 
             Assert.Equal("name", exception.ParamName);
         }
@@ -17,7 +17,7 @@ namespace PaySplit.Domain.Tests.Tenants
         [Fact]
         public void Deactivate_ShouldSetTimestamps()
         {
-            var tenant = Tenant.Create("Acme");
+            var tenant = Tenant.Create("Acme", "USD");
 
             tenant.Deactivate();
 
@@ -29,7 +29,7 @@ namespace PaySplit.Domain.Tests.Tenants
         [Fact]
         public void Suspend_ShouldSetTimestamps()
         {
-            var tenant = Tenant.Create("Acme");
+            var tenant = Tenant.Create("Acme", "USD");
 
             tenant.Suspend();
 
@@ -41,7 +41,7 @@ namespace PaySplit.Domain.Tests.Tenants
         [Fact]
         public void Activate_ShouldClearTimestamps()
         {
-            var tenant = Tenant.Create("Acme");
+            var tenant = Tenant.Create("Acme", "USD");
             tenant.Suspend();
 
             tenant.Activate();

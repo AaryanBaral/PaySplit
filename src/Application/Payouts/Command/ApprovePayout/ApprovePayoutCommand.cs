@@ -1,8 +1,10 @@
 
-using PaymentPlatform.Application.Common;
-using PaymentPlatform.Application.Messaging;
 
-namespace PaymentPlatform.Application.Payouts.Commands.ApprovePayout
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+
+
+namespace PaySplit.Application.Payouts.Commands.ApprovePayout
 {
 public class ApprovePayoutCommand : ICommand<Result<ApprovePayoutResult>>
 {

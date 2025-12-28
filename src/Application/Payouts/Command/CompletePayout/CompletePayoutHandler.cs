@@ -1,10 +1,12 @@
-using PaymentPlatform.Application.Common;
-using PaymentPlatform.Application.Messaging;
-using PaymentPlatform.Application.Presistence;
-using PaymentPlatform.Domain.Ledger;
-using PaymentPlatform.Domain.Payout;
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+using PaySplit.Application.Interfaces.Persistence;
+using PaySplit.Application.Interfaces.Repository;
+using PaySplit.Application.Repository;
+using PaySplit.Domain.Ledgers;
+using PaySplit.Domain.Payouts;
 
-namespace PaymentPlatform.Application.Payouts.Commands.CompletePayout
+namespace PaySplit.Application.Payouts.Commands.CompletePayout
 {
     public class CompletePayoutHandler
         : ICommandHandler<CompletePayoutCommand, Result<CompletePayoutResult>>

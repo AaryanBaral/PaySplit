@@ -25,8 +25,8 @@ namespace PaySplit.Application.Tenants.Command.CreateTenant
 
             try
             {
-                _logger.LogInformation("Creating tenant {TenantName}", command.Name);
-                tenant = Tenant.Create(command.Name);
+                _logger.LogInformation("Creating tenant {TenantName} with currency {DefaultCurrency}", command.Name, command.DefaultCurrency);
+                tenant = Tenant.Create(command.Name, command.DefaultCurrency ?? "USD");
             }
             catch (ArgumentException ex)
             {

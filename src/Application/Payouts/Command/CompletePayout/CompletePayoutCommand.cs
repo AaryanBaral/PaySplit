@@ -1,7 +1,9 @@
-using PaymentPlatform.Application.Common;
-using PaymentPlatform.Application.Messaging;
 
-namespace PaymentPlatform.Application.Payouts.Commands.CompletePayout
+
+using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Results;
+
+namespace PaySplit.Application.Payouts.Commands.CompletePayout
 {
     public class CompletePayoutCommand : ICommand<Result<CompletePayoutResult>>
     {

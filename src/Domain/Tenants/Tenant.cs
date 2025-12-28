@@ -5,6 +5,7 @@ namespace PaySplit.Domain.Tenants
     public class Tenant : Entity
     {
         public string Name { get; protected set; } = default!;
+        public string DefaultCurrency { get; private set; } = default!;
         public DateTimeOffset CreatedAtUtc { get; private set; }
         public DateTimeOffset? DeactivatedAtUtc { get; private set; }
         public DateTimeOffset? SuspendedAtUtc { get; private set; }
@@ -13,21 +14,26 @@ namespace PaySplit.Domain.Tenants
 
         private Tenant() { }
 
-        private Tenant(string name, DateTimeOffset createdAtUtc, TenantStatus status) : base()
+        private Tenant(string name, string defaultCurrency, DateTimeOffset createdAtUtc, TenantStatus status) : base()
         {
             if (String.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentNullException(nameof(name), "Tenant name is required");
             }
+            if (string.IsNullOrWhiteSpace(defaultCurrency))
+            {
+                throw new ArgumentException("Default currency is required.", nameof(defaultCurrency));
+            }
             Name = name.Trim();
+            DefaultCurrency = defaultCurrency.Trim().ToUpperInvariant();
             CreatedAtUtc = createdAtUtc;
             Status = status;
             ApplyStatusTimestamps(status);
         }
 
-        public static Tenant Create(string name)
+        public static Tenant Create(string name, string defaultCurrency = "NPR")
         {
-            return new Tenant(name, DateTimeOffset.UtcNow, TenantStatus.Active);
+            return new Tenant(name, defaultCurrency, DateTimeOffset.UtcNow, TenantStatus.Active);
         }
         public void Rename(string newName)
         {

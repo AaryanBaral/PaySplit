@@ -47,7 +47,7 @@ namespace PaySplit.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTenant([FromBody] CreateTenantRequest request, CancellationToken cancellationToken)
         {
-            var command = new CreateTenantCommand(request.Name);
+            var command = new CreateTenantCommand(request.Name, request.DefaultCurrency);
             var result = await _createHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
