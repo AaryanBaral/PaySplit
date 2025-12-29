@@ -1,10 +1,11 @@
-using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Repository;
+using MediatR;
 
 namespace PaySplit.Application.Merchants.Query.GetAllMerchant
 {
-    public class GetAllMerchantHandler : IQueryHandler<GetAllMerchantQuery, Result<List<GetAllMerchantDto>>>
+    public class GetAllMerchantHandler: IRequestHandler<GetAllMerchantQuery, Result<List<GetAllMerchantDto>>>
     {
         private readonly IMerchantRepository _repository;
 
@@ -20,17 +21,13 @@ namespace PaySplit.Application.Merchants.Query.GetAllMerchant
             var merchants = await _repository.GetAllAsync(filter, cancellationToken);
 
             var result = merchants
-                .Select(m => new GetAllMerchantDto(
-                    m.Id,
-                    m.TenantId,
-                    m.Name,
-                    m.Email,
-                    m.RevenueShare.Value,
-                    m.Status.ToString(),
-                    m.CreatedAtUtc))
+                .Select(m => m.ToGetAllMerchantDto())
                 .ToList();
 
             return Result<List<GetAllMerchantDto>>.Success(result);
         }
-    }
+    
+        public Task<Result<List<GetAllMerchantDto>>> Handle(GetAllMerchantQuery request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

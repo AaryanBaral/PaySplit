@@ -1,5 +1,6 @@
 using PaySplit.Domain.Common;
 using PaySplit.Domain.Payments;
+using PaySplit.Domain.Payments.Exceptions;
 using Xunit;
 
 namespace PaySplit.Domain.Tests.Payments
@@ -23,7 +24,7 @@ namespace PaySplit.Domain.Tests.Payments
         [Fact]
         public void CreatePending_WithInvalidAmount_ShouldThrow()
         {
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<InvalidPaymentAmountException>(() =>
                 Payment.CreatePending(Guid.NewGuid(), Guid.NewGuid(), 0m, "USD", "ext-1"));
         }
 
@@ -48,7 +49,7 @@ namespace PaySplit.Domain.Tests.Payments
             var payment = Payment.CreatePending(Guid.NewGuid(), Guid.NewGuid(), 10m, "USD", "ext-1");
             var share = Percentage.Create(10m);
 
-            Assert.Throws<InvalidOperationException>(() => payment.CalculateRevenueSplit(share));
+            Assert.Throws<PaymentInvalidStatusTransitionException>(() => payment.CalculateRevenueSplit(share));
         }
 
         [Fact]

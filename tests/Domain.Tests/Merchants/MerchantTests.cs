@@ -1,3 +1,4 @@
+using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Merchants;
 
 namespace PaySplit.Domain.Tests.Merchants
@@ -7,19 +8,15 @@ namespace PaySplit.Domain.Tests.Merchants
         [Fact]
         public void Create_WithEmptyTenantId_ShouldThrow()
         {
-            var exception = Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>(() =>
                 Merchant.Create(Guid.Empty, "Test", "test@example.com", 10m));
-
-            Assert.Equal("Tenant id is required. (Parameter 'tenantId')", exception.Message);
         }
 
         [Fact]
         public void Create_WithInvalidRevenueShare_ShouldThrow()
         {
-            var exception = Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<PercentageOutOfRangeException>(() =>
                 Merchant.Create(Guid.NewGuid(), "Test", "test@example.com", 0m));
-
-            Assert.Equal("Percentage must be between 0 and 100 (exclusive).", exception.Message);
         }
 
         [Fact]

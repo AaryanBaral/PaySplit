@@ -1,9 +1,9 @@
-using PaySplit.Application.Common.Abstractions;
 using PaySplit.Application.Common.Results;
+using MediatR;
 
 namespace PaySplit.Application.Merchants.Command.CreateMerchant
 {
-    public class CreateMerchantCommand : ICommand<Result<CreateMerchantResult>>
+    public class CreateMerchantCommand : IRequest<Result<CreateMerchantResult>>
     {
         public Guid TenantId { get; }
         public string Name { get; }

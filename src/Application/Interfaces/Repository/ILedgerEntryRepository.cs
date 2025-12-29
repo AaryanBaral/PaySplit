@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 using PaySplit.Domain.Ledgers;
 
-namespace PaySplit.Application.Repository
+namespace PaySplit.Application.Interfaces.Repository
 {
     public interface ILedgerEntryRepository
     {
-         Task AddAsync(LedgerEntry entry, CancellationToken cancellationToken = default);
+        Task AddAsync(LedgerEntry entry, CancellationToken cancellationToken = default);
         Task<IReadOnlyList<LedgerEntry>> GetByMerchantAsync(
         Guid tenantId,
         Guid merchantId,

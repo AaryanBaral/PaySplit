@@ -1,14 +1,14 @@
+using MediatR;
 
 
 
 
 
-using PaySplit.Application.Common.Abstractions;
 using PaySplit.Application.Common.Results;
 
 namespace PaySplit.Application.Payouts.Commands.RejectPayout
 {
-    public class RejectPayoutCommand : ICommand<Result<RejectPayoutResult>>
+    public class RejectPayoutCommand : IRequest<Result<RejectPayoutResult>>
     {
         public Guid TenantId { get; }
         public Guid PayoutId { get; }

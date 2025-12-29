@@ -1,11 +1,9 @@
-
-
-using PaySplit.Application.Common.Abstractions;
+using MediatR;
 using PaySplit.Application.Common.Results;
 
-namespace PaymentPlatform.Application.Commands.ConfirmPaymentSucceeded
+namespace PaySplit.Application.Payments.Command.ConfirmPaymentSucceeded
 {
-    public class ConfirmPaymentSucceededCommand : ICommand<Result>
+    public class ConfirmPaymentSucceededCommand : IRequest<Result>
 
     {
         public Guid PaymentId { get; }

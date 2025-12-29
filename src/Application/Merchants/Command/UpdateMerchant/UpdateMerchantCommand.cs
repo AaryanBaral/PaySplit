@@ -1,9 +1,9 @@
-using PaySplit.Application.Common.Abstractions;
 using PaySplit.Application.Common.Results;
+using MediatR;
 
 namespace PaySplit.Application.Merchants.Command.UpdateMerchant
 {
-    public class UpdateMerchantCommand : ICommand<Result<UpdateMerchantResult>>
+    public class UpdateMerchantCommand : IRequest<Result<UpdateMerchantResult>>
     {
         public Guid Id { get; }
         public string Name { get; }

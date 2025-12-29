@@ -1,10 +1,11 @@
-using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Repository;
+using MediatR;
 
 namespace PaySplit.Application.Merchants.Query.GetMerchantById
 {
-    public class GetMerchantByIdHandler : IQueryHandler<GetMerchantByIdQuery, Result<GetMerchantByIdDto>>
+    public class GetMerchantByIdHandler: IRequestHandler<GetMerchantByIdQuery, Result<GetMerchantByIdDto>>
     {
         private readonly IMerchantRepository _repository;
 
@@ -27,18 +28,10 @@ namespace PaySplit.Application.Merchants.Query.GetMerchantById
                 return Result<GetMerchantByIdDto>.Failure("Merchant not found");
             }
 
-            var dto = new GetMerchantByIdDto(
-                merchant.Id,
-                merchant.TenantId,
-                merchant.Name,
-                merchant.Email,
-                merchant.RevenueShare.Value,
-                merchant.Status.ToString(),
-                merchant.CreatedAtUtc,
-                merchant.DeactivatedAtUtc,
-                merchant.SuspendedAtUtc);
-
-            return Result<GetMerchantByIdDto>.Success(dto);
+            return Result<GetMerchantByIdDto>.Success(merchant.ToGetMerchantByIdDto());
         }
-    }
+    
+        public Task<Result<GetMerchantByIdDto>> Handle(GetMerchantByIdQuery request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

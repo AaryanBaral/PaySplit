@@ -1,12 +1,12 @@
+using MediatR;
 
 
-using PaySplit.Application.Common.Abstractions;
 using PaySplit.Application.Common.Results;
 
 
 namespace PaySplit.Application.Payouts.Commands.ApprovePayout
 {
-public class ApprovePayoutCommand : ICommand<Result<ApprovePayoutResult>>
+public class ApprovePayoutCommand : IRequest<Result<ApprovePayoutResult>>
 {
     public Guid TenantId { get; }
     public Guid PayoutId { get; }

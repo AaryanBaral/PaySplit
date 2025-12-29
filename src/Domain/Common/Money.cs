@@ -25,7 +25,7 @@ namespace PaySplit.Domain.Common
             }
             if (amount < 0)
             {
-                throw new ArgumentException("Amount Cannot be negative", nameof(amount));
+                throw new Exceptions.MoneyAmountNegativeException(amount);
             }
 
             return new Money(currency.Trim().ToUpperInvariant(), amount);
@@ -38,7 +38,7 @@ namespace PaySplit.Domain.Common
             EnsureSameCurrency(another);
             if (Amount < another.Amount)
             {
-                throw new InvalidOperationException("Resulting money cannot be negative.");
+                throw new Exceptions.MoneyResultNegativeException();
             }
             var resultAmount = Amount - another.Amount;
             return new Money(Currency, resultAmount);
@@ -47,7 +47,7 @@ namespace PaySplit.Domain.Common
         {
             if (factor < 0)
             {
-                throw new ArgumentException("Factor cannot be negative.", nameof(factor));
+                throw new Exceptions.MoneyAmountNegativeException(factor);
             }
 
             var result = Amount * factor;
@@ -62,7 +62,7 @@ namespace PaySplit.Domain.Common
         {
             if (!Currency.Equals(another.Currency, StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("Cannot operate on money with different currencies.");
+                throw new Exceptions.MoneyCurrencyMismatchException(Currency, another.Currency);
             }
         }
         public override string ToString() => $"{Amount} {Currency}";

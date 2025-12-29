@@ -1,13 +1,15 @@
 
-using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
+using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Tenants;
+using MediatR;
 
 namespace PaySplit.Application.Tenants.Command.ActivateTenant
 {
-    public class ActivateCommandHandler : ICommandHandler<ActivateTenantCommand, Result<ActivateTenantResult>>
+    public class ActivateCommandHandler: IRequestHandler<ActivateTenantCommand, Result<ActivateTenantResult>>
     {
         private readonly ITenantRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
@@ -32,14 +34,20 @@ namespace PaySplit.Application.Tenants.Command.ActivateTenant
             {
                 tenant.Activate();
             }
-            catch (InvalidCastException ex)
+            catch (DomainException ex)
+            {
+                return Result<ActivateTenantResult>.Failure(ex.Message);
+            }
+            catch (ArgumentException ex)
             {
                 return Result<ActivateTenantResult>.Failure(ex.Message);
             }
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            var activateTenantResult = new ActivateTenantResult(tenant.Id, tenant.Status.ToString());
-            return Result<ActivateTenantResult>.Success(activateTenantResult);
+            return Result<ActivateTenantResult>.Success(tenant.ToActivateTenantResult());
 
         }
-    }
+    
+        public Task<Result<ActivateTenantResult>> Handle(ActivateTenantCommand request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

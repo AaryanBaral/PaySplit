@@ -1,12 +1,14 @@
-using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
+using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Merchants;
+using MediatR;
 
 namespace PaySplit.Application.Merchants.Command.SuspendMerchant
 {
-    public class SuspendMerchantHandler : ICommandHandler<SuspendMerchantCommand, Result<SuspendMerchantResult>>
+    public class SuspendMerchantHandler: IRequestHandler<SuspendMerchantCommand, Result<SuspendMerchantResult>>
     {
         private readonly IMerchantRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
@@ -34,15 +36,22 @@ namespace PaySplit.Application.Merchants.Command.SuspendMerchant
             {
                 merchant.Suspend();
             }
-            catch (InvalidOperationException ex)
+            catch (DomainException ex)
+            {
+                return Result<SuspendMerchantResult>.Failure(ex.Message);
+            }
+            catch (ArgumentException ex)
             {
                 return Result<SuspendMerchantResult>.Failure(ex.Message);
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var result = new SuspendMerchantResult(merchant.Id, merchant.Status.ToString());
+            var result = merchant.ToSuspendMerchantResult();
             return Result<SuspendMerchantResult>.Success(result);
         }
-    }
+    
+        public Task<Result<SuspendMerchantResult>> Handle(SuspendMerchantCommand request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

@@ -1,11 +1,12 @@
 
-using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Repository;
+using MediatR;
 
 namespace PaySplit.Application.Tenants.Query.GetTenantById
 {
-    public class GetTenantByIdHandler : IQueryHandler<GetTenantByIdQuery, Result<GetTenantByIdDto>>
+    public class GetTenantByIdHandler: IRequestHandler<GetTenantByIdQuery, Result<GetTenantByIdDto>>
     {
         private readonly ITenantRepository _repository;
         public GetTenantByIdHandler(ITenantRepository repository)
@@ -24,15 +25,11 @@ namespace PaySplit.Application.Tenants.Query.GetTenantById
             {
                 return Result<GetTenantByIdDto>.Failure("Tenant not found");
             }
-            var dto = new GetTenantByIdDto(
-                tenant.Id,
-                tenant.Name,
-                tenant.Status.ToString(),
-                tenant.CreatedAtUtc,
-                tenant.DeactivatedAtUtc,
-                tenant.SuspendedAtUtc);
-            return Result<GetTenantByIdDto>.Success(dto);
+            return Result<GetTenantByIdDto>.Success(tenant.ToGetTenantByIdDto());
 
         }
-    }
+    
+        public Task<Result<GetTenantByIdDto>> Handle(GetTenantByIdQuery request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

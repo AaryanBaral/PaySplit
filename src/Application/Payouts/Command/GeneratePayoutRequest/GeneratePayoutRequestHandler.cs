@@ -1,15 +1,17 @@
-using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Models;
+using MediatR;
+
+using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Queries;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Application.Repository;
-using PaySplit.Domain.Common;
+using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Payouts;
 
 namespace PaySplit.Application.Payouts.Commands.GeneratePayoutRequest
 {
-    public class GeneratePayoutRequestHandler : ICommandHandler<GeneratePayoutRequestCommand, Result<GeneratePayoutRequestResult>>
+    public class GeneratePayoutRequestHandler: IRequestHandler<GeneratePayoutRequestCommand, Result<GeneratePayoutRequestResult>>
     {
         private readonly ITenantRepository _tenantRepository;
         private readonly IMerchantRepository _merchantRepository;
@@ -62,7 +64,7 @@ namespace PaySplit.Application.Payouts.Commands.GeneratePayoutRequest
             }
 
             // 4. Get merchant balance
-            MerchantBalance merchantBalance =
+            MerchantBalanceDto merchantBalance =
                 await _merchantBalanceService.GetAsync(command.TenantId, command.MerchantId, cancellationToken);
 
             if (merchantBalance.Available.Amount <= 0m)
@@ -94,9 +96,13 @@ namespace PaySplit.Application.Payouts.Commands.GeneratePayoutRequest
                     command.RequestedByUserId,
                     DateTimeOffset.UtcNow);
             }
-            catch (ArgumentException ex)
+            catch (DomainException ex)
             {
                 // Domain validation errors (e.g., invalid amount/currency)
+                return Result<GeneratePayoutRequestResult>.Failure(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
                 return Result<GeneratePayoutRequestResult>.Failure(ex.Message);
             }
 
@@ -107,16 +113,11 @@ namespace PaySplit.Application.Payouts.Commands.GeneratePayoutRequest
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             // 9. Map to result DTO
-            var result = new GeneratePayoutRequestResult(
-                payout.Id,
-                payout.TenantId,
-                payout.MerchantId,
-                payout.Amount.Amount,
-                payout.Amount.Currency,
-                payout.Status.ToString());
-
-            return Result<GeneratePayoutRequestResult>.Success(result);
+            return Result<GeneratePayoutRequestResult>.Success(payout.ToGeneratePayoutRequestResult());
         }
 
-    }
+    
+        public Task<Result<GeneratePayoutRequestResult>> Handle(GeneratePayoutRequestCommand request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

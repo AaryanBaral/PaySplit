@@ -1,11 +1,11 @@
+using MediatR;
 
 
-using PaySplit.Application.Common.Abstractions;
 using PaySplit.Application.Common.Results;
 
 namespace PaySplit.Application.Payouts.Commands.GeneratePayoutRequest
 {
-    public class GeneratePayoutRequestCommand : ICommand<Result<GeneratePayoutRequestResult>>
+    public class GeneratePayoutRequestCommand : IRequest<Result<GeneratePayoutRequestResult>>
     {
         public Guid TenantId { get; }
         public Guid MerchantId { get; }

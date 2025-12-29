@@ -1,5 +1,5 @@
 using PaySplit.Domain.Common;
-
+using PaySplit.Domain.Common.Exceptions;
 using Xunit;
 
 namespace PaySplit.Domain.Tests.Common
@@ -20,9 +20,7 @@ namespace PaySplit.Domain.Tests.Common
         [InlineData(-1)]
         public void Create_WithInvalidValue_ShouldThrow(decimal value)
         {
-            var exception = Assert.Throws<ArgumentException>(() => Percentage.Create(value));
-
-            Assert.Equal("Percentage must be between 0 and 100 (exclusive).", exception.Message);
+            Assert.Throws<PercentageOutOfRangeException>(() => Percentage.Create(value));
         }
 
         [Fact]

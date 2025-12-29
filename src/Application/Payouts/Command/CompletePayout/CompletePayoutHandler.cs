@@ -1,15 +1,15 @@
-using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Application.Repository;
+using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Ledgers;
 using PaySplit.Domain.Payouts;
+using MediatR;
 
 namespace PaySplit.Application.Payouts.Commands.CompletePayout
 {
-    public class CompletePayoutHandler
-        : ICommandHandler<CompletePayoutCommand, Result<CompletePayoutResult>>
+    public class CompletePayoutHandler : IRequestHandler<CompletePayoutCommand, Result<CompletePayoutResult>>
     {
         private readonly ITenantRepository _tenantRepository;
         private readonly IPayoutRepository _payoutRepository;
@@ -60,7 +60,11 @@ namespace PaySplit.Application.Payouts.Commands.CompletePayout
                     command.CompletedAtUtc,
                     command.Reference);
             }
-            catch (InvalidOperationException ex)
+            catch (DomainException ex)
+            {
+                return Result<CompletePayoutResult>.Failure(ex.Message);
+            }
+            catch (ArgumentException ex)
             {
                 return Result<CompletePayoutResult>.Failure(ex.Message);
             }
@@ -81,11 +85,10 @@ namespace PaySplit.Application.Payouts.Commands.CompletePayout
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             // 7. Map to result
-            var result = new CompletePayoutResult(
-                payout.Id,
-                payout.Status.ToString());
-
-            return Result<CompletePayoutResult>.Success(result);
+            return Result<CompletePayoutResult>.Success(payout.ToCompletePayoutResult());
         }
-    }
+
+        public Task<Result<CompletePayoutResult>> Handle(CompletePayoutCommand request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

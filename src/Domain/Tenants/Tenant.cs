@@ -1,4 +1,5 @@
 using PaySplit.Domain.Common;
+using PaySplit.Domain.Tenants.Exceptions;
 
 namespace PaySplit.Domain.Tenants
 {
@@ -18,7 +19,7 @@ namespace PaySplit.Domain.Tenants
         {
             if (String.IsNullOrWhiteSpace(name))
             {
-                throw new ArgumentNullException(nameof(name), "Tenant name is required");
+                throw new ArgumentException("Name is required.", nameof(name));
             }
             if (string.IsNullOrWhiteSpace(defaultCurrency))
             {
@@ -38,14 +39,14 @@ namespace PaySplit.Domain.Tenants
         public void Rename(string newName)
         {
             if (string.IsNullOrWhiteSpace(newName))
-                throw new ArgumentException("Tenant name is required.", nameof(newName));
+                throw new ArgumentException("Name is required.", nameof(newName));
 
             Name = newName.Trim();
         }
         public void Deactivate()
         {
             if (Status == TenantStatus.Inactive)
-                throw new InvalidOperationException("Tenant is already Inactive.");
+                throw new TenantAlreadyInactiveException();
             Status = TenantStatus.Inactive;
             DeactivatedAtUtc = DateTimeOffset.UtcNow;
             SuspendedAtUtc = null;
@@ -53,7 +54,7 @@ namespace PaySplit.Domain.Tenants
         public void Activate()
         {
             if (Status == TenantStatus.Active)
-                throw new InvalidOperationException("Tenant is already Active.");
+                throw new TenantAlreadyActiveException();
             Status = TenantStatus.Active;
             DeactivatedAtUtc = null;
             SuspendedAtUtc = null;
@@ -61,7 +62,7 @@ namespace PaySplit.Domain.Tenants
         public void Suspend()
         {
             if (Status == TenantStatus.Suspended)
-                throw new InvalidOperationException("Tenant is already Suspended.");
+                throw new TenantAlreadySuspendedException();
             Status = TenantStatus.Suspended;
             SuspendedAtUtc = DateTimeOffset.UtcNow;
             DeactivatedAtUtc = null;

@@ -1,5 +1,6 @@
 
 using PaySplit.Domain.Common;
+using PaySplit.Domain.Merchants.Exceptions;
 
 namespace PaySplit.Domain.Merchants
 {
@@ -29,10 +30,10 @@ namespace PaySplit.Domain.Merchants
                 throw new ArgumentException("Tenant id is required.", nameof(tenantId));
 
             if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Merchant name is required.", nameof(name));
+                throw new ArgumentException("Name is required.", nameof(name));
 
             if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentException("Merchant email is required.", nameof(email));
+                throw new ArgumentException("Email is required.", nameof(email));
             TenantId = tenantId;
             Name = name.Trim();
             RevenueShare = revenueShare;
@@ -54,10 +55,10 @@ namespace PaySplit.Domain.Merchants
         public void UpdateDetails(string name, string email)
         {
             if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Merchant name is required.", nameof(name));
+                throw new ArgumentException("Name is required.", nameof(name));
 
             if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentException("Merchant email is required.", nameof(email));
+                throw new ArgumentException("Email is required.", nameof(email));
 
             Name = name.Trim();
             Email = email.Trim().ToLowerInvariant();
@@ -69,7 +70,7 @@ namespace PaySplit.Domain.Merchants
         public void Deactivate()
         {
             if (Status == MerchantStatus.Inactive)
-                throw new InvalidOperationException("Merchant is already Inactive.");
+                throw new MerchantInactiveException();
             Status = MerchantStatus.Inactive;
             DeactivatedAtUtc = DateTimeOffset.UtcNow;
             SuspendedAtUtc = null;
@@ -77,7 +78,7 @@ namespace PaySplit.Domain.Merchants
         public void Activate()
         {
             if (Status == MerchantStatus.Active)
-                throw new InvalidOperationException("Merchant is already Active.");
+                throw new MerchantAlreadyActiveException();
             Status = MerchantStatus.Active;
             DeactivatedAtUtc = null;
             SuspendedAtUtc = null;
@@ -85,7 +86,7 @@ namespace PaySplit.Domain.Merchants
         public void Suspend()
         {
             if (Status == MerchantStatus.Suspended)
-                throw new InvalidOperationException("Merchant is already Suspended.");
+                throw new MerchantAlreadySuspendedException();
             Status = MerchantStatus.Suspended;
             SuspendedAtUtc = DateTimeOffset.UtcNow;
             DeactivatedAtUtc = null;

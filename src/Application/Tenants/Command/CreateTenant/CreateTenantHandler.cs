@@ -1,14 +1,16 @@
 using Microsoft.Extensions.Logging;
+using MediatR;
 
-using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
+using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Tenants;
 
 namespace PaySplit.Application.Tenants.Command.CreateTenant
 {
-    public class CreateTenantHandler : ICommandHandler<CreateTenantCommand, Result<CreateTenantResult>>
+    public class CreateTenantHandler: IRequestHandler<CreateTenantCommand, Result<CreateTenantResult>>
     {
         private readonly ITenantRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
@@ -28,6 +30,11 @@ namespace PaySplit.Application.Tenants.Command.CreateTenant
                 _logger.LogInformation("Creating tenant {TenantName} with currency {DefaultCurrency}", command.Name, command.DefaultCurrency);
                 tenant = Tenant.Create(command.Name, command.DefaultCurrency ?? "USD");
             }
+            catch (DomainException ex)
+            {
+                _logger.LogWarning("Create tenant failed: {Error}", ex.Message);
+                return Result<CreateTenantResult>.Failure(ex.Message);
+            }
             catch (ArgumentException ex)
             {
                 _logger.LogWarning("Create tenant failed: {Error}", ex.Message);
@@ -37,12 +44,12 @@ namespace PaySplit.Application.Tenants.Command.CreateTenant
             await _repository.AddAsync(tenant, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var createTenantResult = new CreateTenantResult(
-                tenant.Id,
-                tenant.Status.ToString()
-            );
+            var result = tenant.ToCreateTenantResult();
             _logger.LogInformation("Tenant created {TenantId} with status {Status}", tenant.Id, tenant.Status);
-            return Result<CreateTenantResult>.Success(createTenantResult);
+            return Result<CreateTenantResult>.Success(result);
         }
-    }
+    
+        public Task<Result<CreateTenantResult>> Handle(CreateTenantCommand request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

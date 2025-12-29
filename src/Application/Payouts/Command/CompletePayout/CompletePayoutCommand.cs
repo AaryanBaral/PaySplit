@@ -1,11 +1,11 @@
+using MediatR;
 
 
-using PaySplit.Application.Common.Abstractions;
 using PaySplit.Application.Common.Results;
 
 namespace PaySplit.Application.Payouts.Commands.CompletePayout
 {
-    public class CompletePayoutCommand : ICommand<Result<CompletePayoutResult>>
+    public class CompletePayoutCommand : IRequest<Result<CompletePayoutResult>>
     {
         public Guid TenantId { get; }
         public Guid PayoutId { get; }

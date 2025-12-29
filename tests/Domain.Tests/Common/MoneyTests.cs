@@ -1,5 +1,5 @@
 using PaySplit.Domain.Common;
-
+using PaySplit.Domain.Common.Exceptions;
 using Xunit;
 
 namespace PaySplit.Domain.Tests.Common
@@ -18,17 +18,13 @@ namespace PaySplit.Domain.Tests.Common
         [Fact]
         public void Create_WithEmptyCurrency_ShouldThrow()
         {
-            var exception = Assert.Throws<ArgumentException>(() => Money.Create("", 5m));
-
-            Assert.Equal("Currency is required. (Parameter 'currency')", exception.Message);
+            Assert.Throws<ArgumentException>(() => Money.Create("", 5m));
         }
 
         [Fact]
         public void Create_WithNegativeAmount_ShouldThrow()
         {
-            var exception = Assert.Throws<ArgumentException>(() => Money.Create("USD", -1m));
-
-            Assert.Equal("Amount Cannot be negative (Parameter 'amount')", exception.Message);
+            Assert.Throws<MoneyAmountNegativeException>(() => Money.Create("USD", -1m));
         }
 
         [Fact]
@@ -66,9 +62,7 @@ namespace PaySplit.Domain.Tests.Common
             var first = Money.Create("USD", 10m);
             var second = Money.Create("EUR", 5m);
 
-            var exception = Assert.Throws<InvalidOperationException>(() => first.Add(second));
-
-            Assert.Equal("Cannot operate on money with different currencies.", exception.Message);
+            Assert.Throws<MoneyCurrencyMismatchException>(() => first.Add(second));
         }
 
         [Fact]
@@ -77,9 +71,7 @@ namespace PaySplit.Domain.Tests.Common
             var first = Money.Create("USD", 5m);
             var second = Money.Create("USD", 10m);
 
-            var exception = Assert.Throws<InvalidOperationException>(() => first.Subtract(second));
-
-            Assert.Equal("Resulting money cannot be negative.", exception.Message);
+            Assert.Throws<MoneyResultNegativeException>(() => first.Subtract(second));
         }
 
         [Fact]

@@ -1,16 +1,14 @@
-
-
-
-using PaySplit.Application.Common.Abstractions;
+using MediatR;
+using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Application.Repository;
+using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Payouts;
 
 namespace PaySplit.Application.Payouts.Commands.RejectPayout
 {
-    public class RejectPayoutHandler : ICommandHandler<RejectPayoutCommand, Result<RejectPayoutResult>>
+    public class RejectPayoutHandler : IRequestHandler<RejectPayoutCommand, Result<RejectPayoutResult>>
     {
          
         private readonly ITenantRepository _tenantRepository;
@@ -52,25 +50,29 @@ namespace PaySplit.Application.Payouts.Commands.RejectPayout
             }
             
             // 4. Domain operation
-            payout.Reject(
-                command.RejectedByUserId,
-                command.RejectedAtUtc,
-                command.Notes);
+            try
+            {
+                payout.Reject(
+                    command.RejectedByUserId,
+                    command.RejectedAtUtc,
+                    command.Notes);
+            }
+            catch (DomainException ex)
+            {
+                return Result<RejectPayoutResult>.Failure(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return Result<RejectPayoutResult>.Failure(ex.Message);
+            }
 
             // 5. Persist
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            // 6. Build result
-            var result = new RejectPayoutResult(
-                payout.Id,
-                payout.TenantId,
-                payout.MerchantId,
-                payout.Amount.Amount,
-                payout.Amount.Currency,
-                payout.Status.ToString(),
-                payout.Notes);
-
-            return Result<RejectPayoutResult>.Success(result);
+            return Result<RejectPayoutResult>.Success(payout.ToRejectPayoutResult());
         }
-    }
+    
+        public Task<Result<RejectPayoutResult>> Handle(RejectPayoutCommand request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

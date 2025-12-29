@@ -5,8 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using PaySplit.Application.Interfaces.Persistence;
+using PaySplit.Application.Interfaces.Queries;
 using PaySplit.Application.Interfaces.Repository;
 using PaySplit.Infrastructure.Persistence;
+using PaySplit.Infrastructure.Persistence.Queries;
 using PaySplit.Infrastructure.Persistence.Repositories;
 
 namespace PaySplit.Infrastructure;
@@ -35,6 +37,10 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IMerchantRepository, MerchantRepository>();
+        services.AddScoped<IPayoutRepository, PayoutRepository>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<ILedgerEntryRepository, LedgerEntryRepository>();
+        services.AddScoped<IMerchantBalanceQuery, MerchantBalanceQuery>();
 
         return services;
     }

@@ -1,6 +1,7 @@
 
 
 using PaySplit.Domain.Common;
+using PaySplit.Domain.Ledgers.Exceptions;
 
 namespace PaySplit.Domain.Ledgers
 {
@@ -38,13 +39,16 @@ namespace PaySplit.Domain.Ledgers
                 throw new ArgumentNullException(nameof(amount));
 
             if (amount.Amount <= 0)
-                throw new ArgumentException("Ledger amount must be positive.", nameof(amount));
+                throw new LedgerAmountInvalidException(amount.Amount);
 
             if (sourceId == Guid.Empty)
                 throw new ArgumentException("Source id is required.", nameof(sourceId));
 
             if (string.IsNullOrWhiteSpace(description))
                 throw new ArgumentException("Description is required.", nameof(description));
+
+            if (occurredAtUtc == default)
+                throw new ArgumentException("Occurred time is required.", nameof(occurredAtUtc));
 
             var isMerchantKind = kind == LedgerEntryKind.MerchantCredit || kind == LedgerEntryKind.MerchantDebit;
             if (isMerchantKind && merchantId is null)

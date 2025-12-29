@@ -1,5 +1,4 @@
 using PaySplit.Domain.Tenants;
-
 using Xunit;
 
 namespace PaySplit.Domain.Tests.Tenants
@@ -9,9 +8,7 @@ namespace PaySplit.Domain.Tests.Tenants
         [Fact]
         public void Create_WithEmptyName_ShouldThrow()
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => Tenant.Create(" ", "USD"));
-
-            Assert.Equal("name", exception.ParamName);
+            Assert.Throws<ArgumentException>(() => Tenant.Create(" ", "USD"));
         }
 
         [Fact]

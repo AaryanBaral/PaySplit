@@ -1,9 +1,9 @@
-using PaySplit.Application.Common.Abstractions;
 using PaySplit.Application.Common.Results;
+using MediatR;
 
 namespace PaySplit.Application.Merchants.Command.DeactivateMerchant
 {
-    public class DeactivateMerchantCommand : ICommand<Result<DeactivateMerchantResult>>
+    public class DeactivateMerchantCommand : IRequest<Result<DeactivateMerchantResult>>
     {
         public Guid MerchantId { get; }
 

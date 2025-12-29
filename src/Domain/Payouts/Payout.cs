@@ -1,5 +1,6 @@
 
 using PaySplit.Domain.Common;
+using PaySplit.Domain.Payouts.Exceptions;
 
 namespace PaySplit.Domain.Payouts
 {
@@ -47,7 +48,7 @@ namespace PaySplit.Domain.Payouts
                 throw new ArgumentNullException(nameof(amount));
 
             if (amount.Amount <= 0)
-                throw new ArgumentException("Payout amount must be positive.", nameof(amount));
+                throw new PayoutAmountInvalidException(amount.Amount);
 
             if (requestedByUserId == Guid.Empty)
                 throw new ArgumentException("Requested by user id is required.", nameof(requestedByUserId));
@@ -93,7 +94,7 @@ namespace PaySplit.Domain.Payouts
         public void Approve(Guid approvedByUserId, DateTimeOffset approvedAtUtc)
         {
             if (Status != PayoutStatus.Requested)
-                throw new InvalidOperationException("Only requested payouts can be approved.");
+                throw new PayoutInvalidStatusTransitionException("approve", Status);
 
             if (approvedByUserId == Guid.Empty)
                 throw new ArgumentException("Approved by user id is required.", nameof(approvedByUserId));
@@ -109,7 +110,7 @@ namespace PaySplit.Domain.Payouts
         public void MarkCompleted(Guid completedByUserId, DateTimeOffset completedAtUtc, string? reference = null)
         {
             if (Status != PayoutStatus.Approved)
-                throw new InvalidOperationException("Only approved payouts can be completed.");
+                throw new PayoutInvalidStatusTransitionException("complete", Status);
 
             if (completedByUserId == Guid.Empty)
                 throw new ArgumentException("Completed by user id is required.", nameof(completedByUserId));
@@ -130,7 +131,7 @@ namespace PaySplit.Domain.Payouts
         public void Reject(Guid rejectedByUserId, DateTimeOffset rejectedAtUtc, string? notes = null)
         {
             if (Status != PayoutStatus.Requested)
-                throw new InvalidOperationException("Only requested payouts can be rejected.");
+                throw new PayoutInvalidStatusTransitionException("reject", Status);
 
             if (rejectedByUserId == Guid.Empty)
                 throw new ArgumentException("Rejected by user id is required.", nameof(rejectedByUserId));

@@ -1,9 +1,9 @@
-using PaySplit.Application.Common.Abstractions;
 using PaySplit.Application.Common.Results;
+using MediatR;
 
 namespace PaySplit.Application.Merchants.Command.SuspendMerchant
 {
-    public class SuspendMerchantCommand : ICommand<Result<SuspendMerchantResult>>
+    public class SuspendMerchantCommand : IRequest<Result<SuspendMerchantResult>>
     {
         public Guid MerchantId { get; }
 

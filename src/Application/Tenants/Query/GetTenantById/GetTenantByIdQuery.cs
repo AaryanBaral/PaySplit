@@ -1,10 +1,10 @@
 
-using PaySplit.Application.Common.Abstractions;
 using PaySplit.Application.Common.Results;
+using MediatR;
 
 namespace PaySplit.Application.Tenants.Query.GetTenantById
 {
-    public class GetTenantByIdQuery : IQuery<Result<GetTenantByIdDto>>
+    public class GetTenantByIdQuery : IRequest<Result<GetTenantByIdDto>>
     {
         public Guid Id { get; }
 

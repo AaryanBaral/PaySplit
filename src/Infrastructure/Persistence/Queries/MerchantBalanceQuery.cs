@@ -1,22 +1,23 @@
+using PaySplit.Application.Common.Models;
+
 using Microsoft.EntityFrameworkCore;
 using PaySplit.Application.Interfaces.Queries;
 using PaySplit.Domain.Common;
 using PaySplit.Domain.Ledgers;
 using PaySplit.Domain.Payouts;
-using PaySplit.Infrastructure.Persistence;
 
-namespace PaySplit.Infrastructure.Payouts;
+namespace PaySplit.Infrastructure.Persistence.Queries;
 
-public sealed class MerchantBalanceService : IMerchantBalanceQuery
+public sealed class MerchantBalanceQuery : IMerchantBalanceQuery
 {
     private readonly AppDbContext _dbContext;
 
-    public MerchantBalanceService(AppDbContext dbContext)
+    public MerchantBalanceQuery(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
-    public async Task<MerchantBalance> GetAsync(
+    public async Task<MerchantBalanceDto> GetAsync(
         Guid tenantId,
         Guid merchantId,
         CancellationToken ct = default)
@@ -90,7 +91,7 @@ public sealed class MerchantBalanceService : IMerchantBalanceQuery
 
         // IMPORTANT: Ensure Money.Create signature matches your Money type.
         // Most common is Money.Create(decimal amount, string currency)
-        return new MerchantBalance(
+        return new MerchantBalanceDto(
             Posted: Money.Create(tenantCurrency, postedValue),
             Pending: Money.Create(tenantCurrency, pendingValue),
             Available: Money.Create(tenantCurrency, availableValue));

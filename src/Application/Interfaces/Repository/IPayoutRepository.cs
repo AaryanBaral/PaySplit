@@ -1,8 +1,6 @@
-
-
 using PaySplit.Domain.Payouts;
 
-namespace PaySplit.Application.Repository
+namespace PaySplit.Application.Interfaces.Repository
 {
     public interface IPayoutRepository
     {

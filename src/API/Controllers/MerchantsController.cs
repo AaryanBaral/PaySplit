@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PaySplit.API.Dto.Common;
 using PaySplit.API.Dto.Merchants;
 using PaySplit.Application.Common.Filter;
+using MediatR;
 using PaySplit.Application.Merchants.Command.ActivateMerchant;
 using PaySplit.Application.Merchants.Command.CreateMerchant;
 using PaySplit.Application.Merchants.Command.DeactivateMerchant;
@@ -17,30 +18,11 @@ namespace PaySplit.API.Controllers
     [Route("api/[controller]")]
     public class MerchantsController : ControllerBase
     {
-        private readonly CreateMerchantHandler _createHandler;
-        private readonly UpdateMerchantHandler _updateHandler;
-        private readonly ActivateMerchantHandler _activateHandler;
-        private readonly DeactivateMerchantHandler _deactivateHandler;
-        private readonly SuspendMerchantHandler _suspendHandler;
-        private readonly GetAllMerchantHandler _getAllHandler;
-        private readonly GetMerchantByIdHandler _getByIdHandler;
+        private readonly IMediator _mediator;
 
-        public MerchantsController(
-            CreateMerchantHandler createHandler,
-            UpdateMerchantHandler updateHandler,
-            ActivateMerchantHandler activateHandler,
-            DeactivateMerchantHandler deactivateHandler,
-            SuspendMerchantHandler suspendHandler,
-            GetAllMerchantHandler getAllHandler,
-            GetMerchantByIdHandler getByIdHandler)
+        public MerchantsController(IMediator mediator)
         {
-            _createHandler = createHandler;
-            _updateHandler = updateHandler;
-            _activateHandler = activateHandler;
-            _deactivateHandler = deactivateHandler;
-            _suspendHandler = suspendHandler;
-            _getAllHandler = getAllHandler;
-            _getByIdHandler = getByIdHandler;
+            _mediator = mediator;
         }
 
         [HttpPost]
@@ -52,7 +34,7 @@ namespace PaySplit.API.Controllers
                 request.Email,
                 request.RevenueSharePercentage);
 
-            var result = await _createHandler.HandleAsync(command, cancellationToken);
+            var result = await _mediator.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -85,7 +67,7 @@ namespace PaySplit.API.Controllers
             };
 
             var query = new GetAllMerchantQuery(filter);
-            var result = await _getAllHandler.HandleAsync(query, cancellationToken);
+            var result = await _mediator.Send(query, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -110,7 +92,7 @@ namespace PaySplit.API.Controllers
         public async Task<IActionResult> GetMerchantById(Guid id, CancellationToken cancellationToken)
         {
             var query = new GetMerchantByIdQuery(id);
-            var result = await _getByIdHandler.HandleAsync(query, cancellationToken);
+            var result = await _mediator.Send(query, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -144,7 +126,7 @@ namespace PaySplit.API.Controllers
                 request.Email,
                 request.RevenueSharePercentage);
 
-            var result = await _updateHandler.HandleAsync(command, cancellationToken);
+            var result = await _mediator.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -168,7 +150,7 @@ namespace PaySplit.API.Controllers
         public async Task<IActionResult> ActivateMerchant(Guid id, CancellationToken cancellationToken)
         {
             var command = new ActivateMerchantCommand(id);
-            var result = await _activateHandler.HandleAsync(command, cancellationToken);
+            var result = await _mediator.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -188,7 +170,7 @@ namespace PaySplit.API.Controllers
         public async Task<IActionResult> DeactivateMerchant(Guid id, CancellationToken cancellationToken)
         {
             var command = new DeactivateMerchantCommand(id);
-            var result = await _deactivateHandler.HandleAsync(command, cancellationToken);
+            var result = await _mediator.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -208,7 +190,7 @@ namespace PaySplit.API.Controllers
         public async Task<IActionResult> SuspendMerchant(Guid id, CancellationToken cancellationToken)
         {
             var command = new SuspendMerchantCommand(id);
-            var result = await _suspendHandler.HandleAsync(command, cancellationToken);
+            var result = await _mediator.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {

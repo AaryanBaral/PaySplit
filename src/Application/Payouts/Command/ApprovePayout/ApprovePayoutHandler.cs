@@ -1,14 +1,14 @@
-using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Application.Repository;
+using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Payouts;
+using MediatR;
 
 namespace PaySplit.Application.Payouts.Commands.ApprovePayout
 {
-    public class ApprovePayoutHandler
-        : ICommandHandler<ApprovePayoutCommand, Result<ApprovePayoutResult>>
+    public class ApprovePayoutHandler : IRequestHandler<ApprovePayoutCommand, Result<ApprovePayoutResult>>
     {
         private readonly ITenantRepository _tenantRepository;
         private readonly IPayoutRepository _payoutRepository;
@@ -53,7 +53,11 @@ namespace PaySplit.Application.Payouts.Commands.ApprovePayout
             {
                 payout.Approve(command.ApprovedByUserId, DateTimeOffset.UtcNow);
             }
-            catch (InvalidOperationException ex)
+            catch (DomainException ex)
+            {
+                return Result<ApprovePayoutResult>.Failure(ex.Message);
+            }
+            catch (ArgumentException ex)
             {
                 return Result<ApprovePayoutResult>.Failure(ex.Message);
             }
@@ -62,11 +66,10 @@ namespace PaySplit.Application.Payouts.Commands.ApprovePayout
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             // 6. Map to result
-            var result = new ApprovePayoutResult(
-                payout.Id,
-                payout.Status.ToString());
-
-            return Result<ApprovePayoutResult>.Success(result);
+            return Result<ApprovePayoutResult>.Success(payout.ToApprovePayoutResult());
         }
-    }
+
+        public Task<Result<ApprovePayoutResult>> Handle(ApprovePayoutCommand request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

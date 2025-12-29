@@ -1,9 +1,9 @@
-using PaySplit.Application.Common.Abstractions;
 using PaySplit.Application.Common.Results;
+using MediatR;
 
 namespace PaySplit.Application.Merchants.Query.GetMerchantById
 {
-    public class GetMerchantByIdQuery : IQuery<Result<GetMerchantByIdDto>>
+    public class GetMerchantByIdQuery : IRequest<Result<GetMerchantByIdDto>>
     {
         public Guid Id { get; }
 

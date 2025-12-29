@@ -1,5 +1,6 @@
 
 using PaySplit.Domain.Common;
+using PaySplit.Domain.Payments.Exceptions;
 
 namespace PaySplit.Domain.Payments
 {
@@ -29,10 +30,10 @@ namespace PaySplit.Domain.Payments
                 throw new ArgumentNullException(nameof(amount));
 
             if (amount.Amount <= 0)
-                throw new ArgumentException("Payment amount must be positive.", nameof(amount));
+                throw new InvalidPaymentAmountException(amount.Amount);
 
             if (string.IsNullOrWhiteSpace(externalPaymentId))
-                throw new ArgumentException("External payment ID is required.", nameof(externalPaymentId));
+                throw new ArgumentException("External payment id is required.", nameof(externalPaymentId));
 
             TenantId = tenantId;
             MerchantId = merchantId;
@@ -52,6 +53,12 @@ namespace PaySplit.Domain.Payments
         string currency,
         string externalPaymentId)
         {
+            if (string.IsNullOrWhiteSpace(currency) || currency.Length != 3)
+                throw new InvalidCurrencyException(currency);
+
+            if (amount <= 0)
+                throw new InvalidPaymentAmountException(amount);
+
             var money = Money.Create(currency, amount);
             return new Payment(tenantId, merchantId, money, externalPaymentId);
 
@@ -61,7 +68,7 @@ namespace PaySplit.Domain.Payments
         public void MarkSucceeded(DateTimeOffset completedAtUtc)
         {
             if (Status != PaymentStatus.Pending)
-                throw new InvalidOperationException("Only pending payments can be marked as succeeded.");
+                throw new PaymentInvalidStatusTransitionException("mark as succeeded", Status);
 
             if (completedAtUtc == default)
                 throw new ArgumentException("Completed time is required.", nameof(completedAtUtc));
@@ -74,7 +81,7 @@ namespace PaySplit.Domain.Payments
         public void MarkFailed(DateTimeOffset completedAtUtc)
         {
             if (Status != PaymentStatus.Pending)
-                throw new InvalidOperationException("Only pending payments can be marked as failed.");
+                throw new PaymentInvalidStatusTransitionException("mark as failed", Status);
 
             if (completedAtUtc == default)
                 throw new ArgumentException("Completed time is required.", nameof(completedAtUtc));
@@ -88,7 +95,7 @@ namespace PaySplit.Domain.Payments
             if (merchantShare is null)
                 throw new ArgumentNullException(nameof(merchantShare));
             if (Status != PaymentStatus.Succeeded)
-                throw new InvalidOperationException("Revenue can only be split for succeeded payments.");
+                throw new PaymentInvalidStatusTransitionException("split revenue", Status);
 
             // multiply the amount by the fraction of the merchant share
             var merchantAmount = Amount.Multiply(merchantShare.AsFraction());

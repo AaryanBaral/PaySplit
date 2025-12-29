@@ -1,14 +1,16 @@
 using Microsoft.Extensions.Logging;
+using MediatR;
 
-using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
+using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Merchants;
 
 namespace PaySplit.Application.Merchants.Command.CreateMerchant
 {
-    public class CreateMerchantHandler : ICommandHandler<CreateMerchantCommand, Result<CreateMerchantResult>>
+    public class CreateMerchantHandler: IRequestHandler<CreateMerchantCommand, Result<CreateMerchantResult>>
     {
         private readonly IMerchantRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
@@ -36,6 +38,11 @@ namespace PaySplit.Application.Merchants.Command.CreateMerchant
                     command.Email,
                     command.RevenueSharePercentage);
             }
+            catch (DomainException ex)
+            {
+                _logger.LogWarning("Create merchant failed: {Error}", ex.Message);
+                return Result<CreateMerchantResult>.Failure(ex.Message);
+            }
             catch (ArgumentException ex)
             {
                 _logger.LogWarning("Create merchant failed: {Error}", ex.Message);
@@ -45,13 +52,13 @@ namespace PaySplit.Application.Merchants.Command.CreateMerchant
             await _repository.AddAsync(merchant, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var result = new CreateMerchantResult(
-                merchant.Id,
-                merchant.TenantId,
-                merchant.Status.ToString());
+            var result = merchant.ToCreateMerchantResult();
 
             _logger.LogInformation("Merchant created {MerchantId} with status {Status}", merchant.Id, merchant.Status);
             return Result<CreateMerchantResult>.Success(result);
         }
-    }
+    
+        public Task<Result<CreateMerchantResult>> Handle(CreateMerchantCommand request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

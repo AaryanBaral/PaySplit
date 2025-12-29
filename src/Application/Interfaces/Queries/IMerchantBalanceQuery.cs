@@ -1,16 +1,12 @@
-using PaySplit.Domain.Common;
+using PaySplit.Application.Common.Models;
 
 namespace PaySplit.Application.Interfaces.Queries;
 
 public interface IMerchantBalanceQuery
 {
-    Task<MerchantBalance> GetAsync(
+    Task<MerchantBalanceDto> GetAsync(
         Guid tenantId,
         Guid merchantId,
         CancellationToken ct = default);
 }
 
-public sealed record MerchantBalance(
-    Money Available,
-    Money Posted,  
-    Money Pending); 

@@ -15,8 +15,8 @@ public static class MiddlewareExtensions
         app.UseSerilogRequestLogging();
         app.UseHttpsRedirection();
 
-        // app.UseAuthentication();
-        // app.UseAuthorization();
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         app.MapControllers();
 

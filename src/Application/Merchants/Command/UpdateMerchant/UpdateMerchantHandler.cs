@@ -1,11 +1,13 @@
-using PaySplit.Application.Common.Abstractions;
+using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
+using PaySplit.Domain.Common.Exceptions;
+using MediatR;
 
 namespace PaySplit.Application.Merchants.Command.UpdateMerchant
 {
-    public class UpdateMerchantHandler : ICommandHandler<UpdateMerchantCommand, Result<UpdateMerchantResult>>
+    public class UpdateMerchantHandler: IRequestHandler<UpdateMerchantCommand, Result<UpdateMerchantResult>>
     {
         private readonly IMerchantRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
@@ -49,6 +51,10 @@ namespace PaySplit.Application.Merchants.Command.UpdateMerchant
                 merchant.UpdateDetails(command.Name, command.Email);
                 merchant.UpdateRevenueShare(command.RevenueSharePercentage);
             }
+            catch (DomainException ex)
+            {
+                return Result<UpdateMerchantResult>.Failure(ex.Message);
+            }
             catch (ArgumentException ex)
             {
                 return Result<UpdateMerchantResult>.Failure(ex.Message);
@@ -56,14 +62,12 @@ namespace PaySplit.Application.Merchants.Command.UpdateMerchant
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var result = new UpdateMerchantResult(
-                merchant.Id,
-                merchant.Name,
-                merchant.Email,
-                merchant.RevenueShare.Value,
-                merchant.Status.ToString());
+            var result = merchant.ToUpdateMerchantResult();
 
             return Result<UpdateMerchantResult>.Success(result);
         }
-    }
+    
+        public Task<Result<UpdateMerchantResult>> Handle(UpdateMerchantCommand request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

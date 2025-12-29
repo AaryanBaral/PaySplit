@@ -1,16 +1,16 @@
-using PaySplit.Application.Common.Abstractions;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Application.Repository;
+using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Ledgers;
 using PaySplit.Domain.Merchants;
 using PaySplit.Domain.Payments;
+using MediatR;
 
 
-namespace PaymentPlatform.Application.Commands.ConfirmPaymentSucceeded
+namespace PaySplit.Application.Payments.Command.ConfirmPaymentSucceeded
 {
-    public class ConfirmPaymentSucceededHandler : ICommandHandler<ConfirmPaymentSucceededCommand, Result>
+    public class ConfirmPaymentSucceededHandler : IRequestHandler<ConfirmPaymentSucceededCommand, Result>
     {
         private readonly IPaymentRepository _paymentRepository;
         private readonly IMerchantRepository _merchantRepository;
@@ -46,9 +46,13 @@ namespace PaymentPlatform.Application.Commands.ConfirmPaymentSucceeded
             {
                 payment.MarkSucceeded(command.CompletedAtUtc);
             }
-            catch (InvalidOperationException ex)
+            catch (DomainException ex)
             {
                 // Should be rare, but we still turn it into a clean failure
+                return Result.Failure(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
                 return Result.Failure(ex.Message);
             }
 
@@ -95,5 +99,8 @@ namespace PaymentPlatform.Application.Commands.ConfirmPaymentSucceeded
             return Result.Success();
 
         }
-    }
+    
+        public Task<Result> Handle(ConfirmPaymentSucceededCommand request, CancellationToken cancellationToken)
+            => HandleAsync(request, cancellationToken);
+}
 }

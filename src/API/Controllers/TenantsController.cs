@@ -4,6 +4,7 @@ using PaySplit.API.Dto.Common;
 using PaySplit.API.Dto.Tenants;
 using PaySplit.Application.Common.Filter;
 using PaySplit.Application.Common.Results;
+using MediatR;
 using PaySplit.Application.Tenants.Command.ActivateTenant;
 using PaySplit.Application.Tenants.Command.CreateTenant;
 using PaySplit.Application.Tenants.Command.DeactivateTenant;
@@ -18,37 +19,18 @@ namespace PaySplit.API.Controllers
     [Route("api/[controller]")]
     public class TenantsController : ControllerBase
     {
-        private readonly CreateTenantHandler _createHandler;
-        private readonly UpdateCommandHandler _renameHandler;
-        private readonly ActivateCommandHandler _activateHandler;
-        private readonly DeactivateCommandHandler _deactivateHandler;
-        private readonly SuspendCommandHandler _suspendHandler;
-        private readonly GetAllTenantHandler _getAllHandler;
-        private readonly GetTenantByIdHandler _getByIdHandler;
+        private readonly IMediator _mediator;
 
-        public TenantsController(
-            CreateTenantHandler createHandler,
-            UpdateCommandHandler renameHandler,
-            ActivateCommandHandler activateHandler,
-            DeactivateCommandHandler deactivateHandler,
-            SuspendCommandHandler suspendHandler,
-            GetAllTenantHandler getAllHandler,
-            GetTenantByIdHandler getByIdHandler)
+        public TenantsController(IMediator mediator)
         {
-            _createHandler = createHandler;
-            _renameHandler = renameHandler;
-            _activateHandler = activateHandler;
-            _deactivateHandler = deactivateHandler;
-            _suspendHandler = suspendHandler;
-            _getAllHandler = getAllHandler;
-            _getByIdHandler = getByIdHandler;
+            _mediator = mediator;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateTenant([FromBody] CreateTenantRequest request, CancellationToken cancellationToken)
         {
             var command = new CreateTenantCommand(request.Name, request.DefaultCurrency);
-            var result = await _createHandler.HandleAsync(command, cancellationToken);
+            var result = await _mediator.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -81,7 +63,7 @@ namespace PaySplit.API.Controllers
             };
 
             var query = new GetAllTenantQuery(filter);
-            var result = await _getAllHandler.HandleAsync(query, cancellationToken);
+            var result = await _mediator.Send(query, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -103,7 +85,7 @@ namespace PaySplit.API.Controllers
         public async Task<IActionResult> GetTenantById(Guid id, CancellationToken cancellationToken)
         {
             var query = new GetTenantByIdQuery(id);
-            var result = await _getByIdHandler.HandleAsync(query, cancellationToken);
+            var result = await _mediator.Send(query, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -129,7 +111,7 @@ namespace PaySplit.API.Controllers
         public async Task<IActionResult> RenameTenant(Guid id, [FromBody] UpdateTenantRequest request, CancellationToken cancellationToken)
         {
             var command = new RenameTenantCommand(id, request.Name);
-            var result = await _renameHandler.HandleAsync(command, cancellationToken);
+            var result = await _mediator.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -150,7 +132,7 @@ namespace PaySplit.API.Controllers
         public async Task<IActionResult> ActivateTenant(Guid id, CancellationToken cancellationToken)
         {
             var command = new ActivateTenantCommand(id);
-            var result = await _activateHandler.HandleAsync(command, cancellationToken);
+            var result = await _mediator.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -170,7 +152,7 @@ namespace PaySplit.API.Controllers
         public async Task<IActionResult> DeactivateTenant(Guid id, CancellationToken cancellationToken)
         {
             var command = new DeactivateTenantCommand(id);
-            var result = await _deactivateHandler.HandleAsync(command, cancellationToken);
+            var result = await _mediator.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -190,7 +172,7 @@ namespace PaySplit.API.Controllers
         public async Task<IActionResult> SuspendTenant(Guid id, CancellationToken cancellationToken)
         {
             var command = new SuspendTenantCommand(id);
-            var result = await _suspendHandler.HandleAsync(command, cancellationToken);
+            var result = await _mediator.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {

@@ -1,4 +1,5 @@
 using PaySplit.Domain.Common;
+using PaySplit.Domain.Tenants.Exceptions;
 
 namespace PaySplit.Domain.Tenants
 {
@@ -54,7 +55,7 @@ namespace PaySplit.Domain.Tenants
         public void ChangeRole(TenantUserRole newRole)
         {
             if (Status != TenantUserStatus.Active)
-                throw new InvalidOperationException("Cannot change role of an inactive user.");
+                throw new TenantUserNotActiveException();
 
             Role = newRole;
         }
@@ -62,19 +63,19 @@ namespace PaySplit.Domain.Tenants
         public void Deactivate()
         {
             if (Status == TenantUserStatus.Inactive)
-                throw new InvalidOperationException("Tenant is already Inactive.");
+                throw new TenantUserAlreadyInactiveException();
             Status = TenantUserStatus.Inactive;
         }
         public void Activate()
         {
             if (Status == TenantUserStatus.Active)
-                throw new InvalidOperationException("Tenant is already Active.");
+                throw new TenantUserAlreadyActiveException();
             Status = TenantUserStatus.Active;
         }
         public void Suspend()
         {
             if (Status == TenantUserStatus.Suspended)
-                throw new InvalidOperationException("Tenant is already Suspended.");
+                throw new TenantUserAlreadySuspendedException();
             Status = TenantUserStatus.Suspended;
         }
 
