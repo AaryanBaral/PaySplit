@@ -5,7 +5,6 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Tenants;
 
 namespace PaySplit.Application.Tenants.Command.CreateTenant
@@ -23,24 +22,16 @@ namespace PaySplit.Application.Tenants.Command.CreateTenant
         }
         public async Task<Result<CreateTenantResult>> HandleAsync(CreateTenantCommand command, CancellationToken cancellationToken = default)
         {
-            Tenant tenant;
-
-            try
+            _logger.LogInformation("Creating tenant {TenantName} with currency {DefaultCurrency}", command.Name, command.DefaultCurrency);
+            var tenantResult = Tenant.Create(command.Name, command.DefaultCurrency ?? "USD");
+            if (!tenantResult.IsSuccess || tenantResult.Value is null)
             {
-                _logger.LogInformation("Creating tenant {TenantName} with currency {DefaultCurrency}", command.Name, command.DefaultCurrency);
-                tenant = Tenant.Create(command.Name, command.DefaultCurrency ?? "USD");
-            }
-            catch (DomainException ex)
-            {
-                _logger.LogWarning("Create tenant failed: {Error}", ex.Message);
-                return Result<CreateTenantResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning("Create tenant failed: {Error}", ex.Message);
-                return Result<CreateTenantResult>.Failure(ex.Message);
+                var error = tenantResult.Error ?? "Tenant is invalid.";
+                _logger.LogWarning("Create tenant failed: {Error}", error);
+                return Result<CreateTenantResult>.Failure(error);
             }
 
+            var tenant = tenantResult.Value;
             await _repository.AddAsync(tenant, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

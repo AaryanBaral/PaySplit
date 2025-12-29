@@ -6,7 +6,6 @@ using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Queries;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Payouts;
 
 namespace PaySplit.Application.Payouts.Commands.GeneratePayoutRequest
@@ -85,28 +84,22 @@ namespace PaySplit.Application.Payouts.Commands.GeneratePayoutRequest
             }
 
             // 6. Create payout in domain
-            Payout payout;
-            try
+            var payoutResult = Payout.Request(
+                command.TenantId,
+                command.MerchantId,
+                command.RequestedAmount,
+                command.Currency,
+                command.RequestedByUserId,
+                DateTimeOffset.UtcNow);
+
+            if (!payoutResult.IsSuccess || payoutResult.Value is null)
             {
-                payout = Payout.Request(
-                    command.TenantId,
-                    command.MerchantId,
-                    command.RequestedAmount,
-                    command.Currency,
-                    command.RequestedByUserId,
-                    DateTimeOffset.UtcNow);
-            }
-            catch (DomainException ex)
-            {
-                // Domain validation errors (e.g., invalid amount/currency)
-                return Result<GeneratePayoutRequestResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return Result<GeneratePayoutRequestResult>.Failure(ex.Message);
+                return Result<GeneratePayoutRequestResult>.Failure(
+                    payoutResult.Error ?? "Payout request is invalid.");
             }
 
             // 7. Persist payout
+            var payout = payoutResult.Value;
             await _payoutRepository.AddAsync(payout, cancellationToken);
 
             // 8. Save changes

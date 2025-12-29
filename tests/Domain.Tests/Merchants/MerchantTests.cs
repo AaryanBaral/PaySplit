@@ -1,4 +1,3 @@
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Merchants;
 
 namespace PaySplit.Domain.Tests.Merchants
@@ -6,23 +5,25 @@ namespace PaySplit.Domain.Tests.Merchants
     public class MerchantTests
     {
         [Fact]
-        public void Create_WithEmptyTenantId_ShouldThrow()
+        public void Create_WithEmptyTenantId_ShouldFail()
         {
-            Assert.Throws<ArgumentException>(() =>
-                Merchant.Create(Guid.Empty, "Test", "test@example.com", 10m));
+            var result = Merchant.Create(Guid.Empty, "Test", "test@example.com", 10m);
+
+            Assert.False(result.IsSuccess);
         }
 
         [Fact]
-        public void Create_WithInvalidRevenueShare_ShouldThrow()
+        public void Create_WithInvalidRevenueShare_ShouldFail()
         {
-            Assert.Throws<PercentageOutOfRangeException>(() =>
-                Merchant.Create(Guid.NewGuid(), "Test", "test@example.com", 0m));
+            var result = Merchant.Create(Guid.NewGuid(), "Test", "test@example.com", 0m);
+
+            Assert.False(result.IsSuccess);
         }
 
         [Fact]
         public void Deactivate_ShouldSetTimestamps()
         {
-            var merchant = Merchant.Create(Guid.NewGuid(), "Test", "test@example.com", 10m);
+            var merchant = Merchant.Create(Guid.NewGuid(), "Test", "test@example.com", 10m).Value!;
 
             merchant.Deactivate();
 
@@ -34,7 +35,7 @@ namespace PaySplit.Domain.Tests.Merchants
         [Fact]
         public void Suspend_ShouldSetTimestamps()
         {
-            var merchant = Merchant.Create(Guid.NewGuid(), "Test", "test@example.com", 10m);
+            var merchant = Merchant.Create(Guid.NewGuid(), "Test", "test@example.com", 10m).Value!;
 
             merchant.Suspend();
 
@@ -46,7 +47,7 @@ namespace PaySplit.Domain.Tests.Merchants
         [Fact]
         public void Activate_ShouldClearTimestamps()
         {
-            var merchant = Merchant.Create(Guid.NewGuid(), "Test", "test@example.com", 10m);
+            var merchant = Merchant.Create(Guid.NewGuid(), "Test", "test@example.com", 10m).Value!;
             merchant.Suspend();
 
             merchant.Activate();

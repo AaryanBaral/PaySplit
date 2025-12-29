@@ -1,5 +1,6 @@
 
 using PaySplit.Domain.Common;
+using PaySplit.Domain.Common.Results;
 using PaySplit.Domain.Payments.Exceptions;
 
 namespace PaySplit.Domain.Payments
@@ -19,27 +20,10 @@ namespace PaySplit.Domain.Payments
         Money amount,
         string externalPaymentId) : base()
         {
-            if (tenantId == Guid.Empty)
-                throw new ArgumentException("Tenant id is required.", nameof(tenantId));
-
-            if (merchantId == Guid.Empty)
-                throw new ArgumentException("Merchant id is required.", nameof(merchantId));
-
-            // validations and setter code for this class
-            if (amount is null)
-                throw new ArgumentNullException(nameof(amount));
-
-            if (amount.Amount <= 0)
-                throw new InvalidPaymentAmountException(amount.Amount);
-
-            if (string.IsNullOrWhiteSpace(externalPaymentId))
-                throw new ArgumentException("External payment id is required.", nameof(externalPaymentId));
-
             TenantId = tenantId;
             MerchantId = merchantId;
             Amount = amount;
             ExternalPaymentId = externalPaymentId.Trim();
-
             Status = PaymentStatus.Pending;
             CreatedAtUtc = DateTimeOffset.UtcNow;
             CompletedAtUtc = null;
@@ -47,61 +31,98 @@ namespace PaySplit.Domain.Payments
 
         // public function that is to be called my other class
         // this methods internally calls the constructor and retuern it.
-        public static Payment CreatePending(Guid tenantId,
-        Guid merchantId,
-        decimal amount,
-        string currency,
-        string externalPaymentId)
+        public static Result<Payment> CreatePending(
+            Guid tenantId,
+            Guid merchantId,
+            decimal amount,
+            string currency)
+        {
+            if (tenantId == Guid.Empty)
+                return Result<Payment>.Failure("Tenant id is required.");
+
+            if (merchantId == Guid.Empty)
+                return Result<Payment>.Failure("Merchant id is required.");
+
+            return CreateInternal(tenantId, merchantId, amount, currency, externalPaymentId: null);
+
+        }
+
+        public static Result<Payment> CreateIncoming(
+            Guid tenantId,
+            Guid merchantId,
+            decimal amount,
+            string currency,
+            string externalPaymentId)
+        {
+            if (string.IsNullOrWhiteSpace(externalPaymentId))
+                return Result<Payment>.Failure("External payment id is required.");
+
+            return CreateInternal(tenantId, merchantId, amount, currency, externalPaymentId);
+        }
+
+        private static Result<Payment> CreateInternal(
+            Guid tenantId,
+            Guid merchantId,
+            decimal amount,
+            string currency,
+            string? externalPaymentId)
         {
             if (string.IsNullOrWhiteSpace(currency) || currency.Length != 3)
-                throw new InvalidCurrencyException(currency);
+                return Result<Payment>.Failure(new InvalidCurrencyException(currency).Message);
 
             if (amount <= 0)
-                throw new InvalidPaymentAmountException(amount);
+                return Result<Payment>.Failure(new InvalidPaymentAmountException(amount).Message);
 
-            var money = Money.Create(currency, amount);
-            return new Payment(tenantId, merchantId, money, externalPaymentId);
+            var moneyResult = Money.Create(currency, amount);
+            if (!moneyResult.IsSuccess || moneyResult.Value is null)
+                return Result<Payment>.Failure(moneyResult.Error ?? "Payment amount is invalid.");
 
+            var externalIdValue = string.IsNullOrWhiteSpace(externalPaymentId) ? string.Empty : externalPaymentId.Trim();
+            return Result<Payment>.Success(
+                new Payment(tenantId, merchantId, moneyResult.Value, externalIdValue));
         }
 
         // mark the payment success after buisness processing.
-        public void MarkSucceeded(DateTimeOffset completedAtUtc)
+        public Result MarkSucceeded(DateTimeOffset completedAtUtc)
         {
             if (Status != PaymentStatus.Pending)
-                throw new PaymentInvalidStatusTransitionException("mark as succeeded", Status);
+                return Result.Failure(new PaymentInvalidStatusTransitionException("mark as succeeded", Status).Message);
 
             if (completedAtUtc == default)
-                throw new ArgumentException("Completed time is required.", nameof(completedAtUtc));
+                return Result.Failure("Completed time is required.");
 
             Status = PaymentStatus.Succeeded;
             CompletedAtUtc = completedAtUtc;
+            return Result.Success();
         }
 
         // Mark the payment as failed (after gateway callback)
-        public void MarkFailed(DateTimeOffset completedAtUtc)
+        public Result MarkFailed(DateTimeOffset completedAtUtc)
         {
             if (Status != PaymentStatus.Pending)
-                throw new PaymentInvalidStatusTransitionException("mark as failed", Status);
+                return Result.Failure(new PaymentInvalidStatusTransitionException("mark as failed", Status).Message);
 
             if (completedAtUtc == default)
-                throw new ArgumentException("Completed time is required.", nameof(completedAtUtc));
+                return Result.Failure("Completed time is required.");
 
             Status = PaymentStatus.Failed;
             CompletedAtUtc = completedAtUtc;
+            return Result.Success();
         }
 
-        public (Money merchantAmount, Money tenantAmount) CalculateRevenueSplit(Percentage merchantShare)
+        public Result<(Money merchantAmount, Money tenantAmount)> CalculateRevenueSplit(Percentage merchantShare)
         {
             if (merchantShare is null)
                 throw new ArgumentNullException(nameof(merchantShare));
             if (Status != PaymentStatus.Succeeded)
-                throw new PaymentInvalidStatusTransitionException("split revenue", Status);
+                return Result<(Money merchantAmount, Money tenantAmount)>.Failure(
+                    new PaymentInvalidStatusTransitionException("split revenue", Status).Message);
 
             // multiply the amount by the fraction of the merchant share
             var merchantAmount = Amount.Multiply(merchantShare.AsFraction());
 
             var tenantAmount = Amount.Subtract(merchantAmount);
-            return (merchantAmount, tenantAmount);
+            return Result<(Money merchantAmount, Money tenantAmount)>.Success((merchantAmount, tenantAmount));
         }
 
 

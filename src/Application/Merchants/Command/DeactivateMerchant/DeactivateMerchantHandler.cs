@@ -2,7 +2,6 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Merchants;
 using MediatR;
 
@@ -32,17 +31,10 @@ namespace PaySplit.Application.Merchants.Command.DeactivateMerchant
                 return Result<DeactivateMerchantResult>.Failure("Merchant is already Deactivated");
             }
 
-            try
+            var deactivateResult = merchant.Deactivate();
+            if (!deactivateResult.IsSuccess)
             {
-                merchant.Deactivate();
-            }
-            catch (DomainException ex)
-            {
-                return Result<DeactivateMerchantResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return Result<DeactivateMerchantResult>.Failure(ex.Message);
+                return Result<DeactivateMerchantResult>.Failure(deactivateResult.Error ?? "Merchant deactivation failed.");
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -1,4 +1,5 @@
 using PaySplit.Domain.Common;
+using PaySplit.Domain.Common.Results;
 using PaySplit.Domain.Tenants.Exceptions;
 
 namespace PaySplit.Domain.Tenants
@@ -17,14 +18,6 @@ namespace PaySplit.Domain.Tenants
 
         private Tenant(string name, string defaultCurrency, DateTimeOffset createdAtUtc, TenantStatus status) : base()
         {
-            if (String.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException("Name is required.", nameof(name));
-            }
-            if (string.IsNullOrWhiteSpace(defaultCurrency))
-            {
-                throw new ArgumentException("Default currency is required.", nameof(defaultCurrency));
-            }
             Name = name.Trim();
             DefaultCurrency = defaultCurrency.Trim().ToUpperInvariant();
             CreatedAtUtc = createdAtUtc;
@@ -32,40 +25,51 @@ namespace PaySplit.Domain.Tenants
             ApplyStatusTimestamps(status);
         }
 
-        public static Tenant Create(string name, string defaultCurrency = "NPR")
+        public static Result<Tenant> Create(string name, string defaultCurrency = "NPR")
         {
-            return new Tenant(name, defaultCurrency, DateTimeOffset.UtcNow, TenantStatus.Active);
+            if (string.IsNullOrWhiteSpace(name))
+                return Result<Tenant>.Failure("Name is required.");
+
+            if (string.IsNullOrWhiteSpace(defaultCurrency))
+                return Result<Tenant>.Failure("Default currency is required.");
+
+            return Result<Tenant>.Success(
+                new Tenant(name, defaultCurrency, DateTimeOffset.UtcNow, TenantStatus.Active));
         }
-        public void Rename(string newName)
+        public Result Rename(string newName)
         {
             if (string.IsNullOrWhiteSpace(newName))
-                throw new ArgumentException("Name is required.", nameof(newName));
+                return Result.Failure("Name is required.");
 
             Name = newName.Trim();
+            return Result.Success();
         }
-        public void Deactivate()
+        public Result Deactivate()
         {
             if (Status == TenantStatus.Inactive)
-                throw new TenantAlreadyInactiveException();
+                return Result.Failure(new TenantAlreadyInactiveException().Message);
             Status = TenantStatus.Inactive;
             DeactivatedAtUtc = DateTimeOffset.UtcNow;
             SuspendedAtUtc = null;
+            return Result.Success();
         }
-        public void Activate()
+        public Result Activate()
         {
             if (Status == TenantStatus.Active)
-                throw new TenantAlreadyActiveException();
+                return Result.Failure(new TenantAlreadyActiveException().Message);
             Status = TenantStatus.Active;
             DeactivatedAtUtc = null;
             SuspendedAtUtc = null;
+            return Result.Success();
         }
-        public void Suspend()
+        public Result Suspend()
         {
             if (Status == TenantStatus.Suspended)
-                throw new TenantAlreadySuspendedException();
+                return Result.Failure(new TenantAlreadySuspendedException().Message);
             Status = TenantStatus.Suspended;
             SuspendedAtUtc = DateTimeOffset.UtcNow;
             DeactivatedAtUtc = null;
+            return Result.Success();
         }
 
         private void ApplyStatusTimestamps(TenantStatus status)

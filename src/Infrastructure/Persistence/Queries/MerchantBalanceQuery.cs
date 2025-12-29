@@ -91,9 +91,20 @@ public sealed class MerchantBalanceQuery : IMerchantBalanceQuery
 
         // IMPORTANT: Ensure Money.Create signature matches your Money type.
         // Most common is Money.Create(decimal amount, string currency)
+        var postedMoney = Money.Create(tenantCurrency, postedValue);
+        var pendingMoney = Money.Create(tenantCurrency, pendingValue);
+        var availableMoney = Money.Create(tenantCurrency, availableValue);
+
+        if (!postedMoney.IsSuccess || postedMoney.Value is null)
+            throw new InvalidOperationException(postedMoney.Error ?? "Posted amount is invalid.");
+        if (!pendingMoney.IsSuccess || pendingMoney.Value is null)
+            throw new InvalidOperationException(pendingMoney.Error ?? "Pending amount is invalid.");
+        if (!availableMoney.IsSuccess || availableMoney.Value is null)
+            throw new InvalidOperationException(availableMoney.Error ?? "Available amount is invalid.");
+
         return new MerchantBalanceDto(
-            Posted: Money.Create(tenantCurrency, postedValue),
-            Pending: Money.Create(tenantCurrency, pendingValue),
-            Available: Money.Create(tenantCurrency, availableValue));
+            Posted: postedMoney.Value,
+            Pending: pendingMoney.Value,
+            Available: availableMoney.Value);
     }
 }

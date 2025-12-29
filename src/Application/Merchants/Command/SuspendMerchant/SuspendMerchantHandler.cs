@@ -2,13 +2,13 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Merchants;
+
 using MediatR;
 
 namespace PaySplit.Application.Merchants.Command.SuspendMerchant
 {
-    public class SuspendMerchantHandler: IRequestHandler<SuspendMerchantCommand, Result<SuspendMerchantResult>>
+    public class SuspendMerchantHandler : IRequestHandler<SuspendMerchantCommand, Result<SuspendMerchantResult>>
     {
         private readonly IMerchantRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
@@ -19,7 +19,7 @@ namespace PaySplit.Application.Merchants.Command.SuspendMerchant
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<SuspendMerchantResult>> HandleAsync(SuspendMerchantCommand command, CancellationToken cancellationToken = default)
+        public async Task<Result<SuspendMerchantResult>> Handle(SuspendMerchantCommand command, CancellationToken cancellationToken = default)
         {
             var merchant = await _repository.GetByIdAsync(command.MerchantId, cancellationToken);
             if (merchant is null)
@@ -32,17 +32,10 @@ namespace PaySplit.Application.Merchants.Command.SuspendMerchant
                 return Result<SuspendMerchantResult>.Failure("Merchant is already Suspended");
             }
 
-            try
+            var suspendResult = merchant.Suspend();
+            if (!suspendResult.IsSuccess)
             {
-                merchant.Suspend();
-            }
-            catch (DomainException ex)
-            {
-                return Result<SuspendMerchantResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return Result<SuspendMerchantResult>.Failure(ex.Message);
+                return Result<SuspendMerchantResult>.Failure(suspendResult.Error ?? "Merchant suspension failed.");
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -50,8 +43,6 @@ namespace PaySplit.Application.Merchants.Command.SuspendMerchant
             var result = merchant.ToSuspendMerchantResult();
             return Result<SuspendMerchantResult>.Success(result);
         }
-    
-        public Task<Result<SuspendMerchantResult>> Handle(SuspendMerchantCommand request, CancellationToken cancellationToken)
-            => HandleAsync(request, cancellationToken);
-}
+
+    }
 }

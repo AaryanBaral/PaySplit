@@ -1,5 +1,6 @@
 
 using PaySplit.Domain.Common;
+using PaySplit.Domain.Common.Results;
 using PaySplit.Domain.Payouts.Exceptions;
 
 namespace PaySplit.Domain.Payouts
@@ -38,24 +39,6 @@ namespace PaySplit.Domain.Payouts
             string? notes)
             : base()
         {
-            if (tenantId == Guid.Empty)
-                throw new ArgumentException("Tenant id is required.", nameof(tenantId));
-
-            if (merchantId == Guid.Empty)
-                throw new ArgumentException("Merchant id is required.", nameof(merchantId));
-
-            if (amount is null)
-                throw new ArgumentNullException(nameof(amount));
-
-            if (amount.Amount <= 0)
-                throw new PayoutAmountInvalidException(amount.Amount);
-
-            if (requestedByUserId == Guid.Empty)
-                throw new ArgumentException("Requested by user id is required.", nameof(requestedByUserId));
-
-            if (requestedAtUtc == default)
-                throw new ArgumentException("Requested time is required.", nameof(requestedAtUtc));
-
             TenantId = tenantId;
             MerchantId = merchantId;
             Amount = amount;
@@ -70,7 +53,7 @@ namespace PaySplit.Domain.Payouts
         }
 
 
-        public static Payout Request(
+        public static Result<Payout> Request(
     Guid tenantId,
     Guid merchantId,
     decimal amount,
@@ -80,43 +63,63 @@ namespace PaySplit.Domain.Payouts
     string? reference = null,
     string? notes = null)
         {
-            var money = Money.Create(currency, amount);
-            return new Payout(
-                tenantId,
-                merchantId,
-                money,
-                requestedByUserId,
-                requestedAtUtc,
-                reference,
-                notes);
+            if (tenantId == Guid.Empty)
+                return Result<Payout>.Failure("Tenant id is required.");
+
+            if (merchantId == Guid.Empty)
+                return Result<Payout>.Failure("Merchant id is required.");
+
+            if (requestedByUserId == Guid.Empty)
+                return Result<Payout>.Failure("Requested by user id is required.");
+
+            if (requestedAtUtc == default)
+                return Result<Payout>.Failure("Requested time is required.");
+
+            var moneyResult = Money.Create(currency, amount);
+            if (!moneyResult.IsSuccess || moneyResult.Value is null)
+                return Result<Payout>.Failure(moneyResult.Error ?? "Payout amount is invalid.");
+
+            if (moneyResult.Value.Amount <= 0)
+                return Result<Payout>.Failure(new PayoutAmountInvalidException(moneyResult.Value.Amount).Message);
+
+            return Result<Payout>.Success(
+                new Payout(
+                    tenantId,
+                    merchantId,
+                    moneyResult.Value,
+                    requestedByUserId,
+                    requestedAtUtc,
+                    reference,
+                    notes));
         }
 
-        public void Approve(Guid approvedByUserId, DateTimeOffset approvedAtUtc)
+        public Result Approve(Guid approvedByUserId, DateTimeOffset approvedAtUtc)
         {
             if (Status != PayoutStatus.Requested)
-                throw new PayoutInvalidStatusTransitionException("approve", Status);
+                return Result.Failure(new PayoutInvalidStatusTransitionException("approve", Status).Message);
 
             if (approvedByUserId == Guid.Empty)
-                throw new ArgumentException("Approved by user id is required.", nameof(approvedByUserId));
+                return Result.Failure("Approved by user id is required.");
 
             if (approvedAtUtc == default)
-                throw new ArgumentException("Approved time is required.", nameof(approvedAtUtc));
+                return Result.Failure("Approved time is required.");
 
             Status = PayoutStatus.Approved;
             ApprovedByUserId = approvedByUserId;
             ApprovedAtUtc = approvedAtUtc;
+            return Result.Success();
         }
 
-        public void MarkCompleted(Guid completedByUserId, DateTimeOffset completedAtUtc, string? reference = null)
+        public Result MarkCompleted(Guid completedByUserId, DateTimeOffset completedAtUtc, string? reference = null)
         {
             if (Status != PayoutStatus.Approved)
-                throw new PayoutInvalidStatusTransitionException("complete", Status);
+                return Result.Failure(new PayoutInvalidStatusTransitionException("complete", Status).Message);
 
             if (completedByUserId == Guid.Empty)
-                throw new ArgumentException("Completed by user id is required.", nameof(completedByUserId));
+                return Result.Failure("Completed by user id is required.");
 
             if (completedAtUtc == default)
-                throw new ArgumentException("Completed time is required.", nameof(completedAtUtc));
+                return Result.Failure("Completed time is required.");
 
             Status = PayoutStatus.Completed;
             CompletedByUserId = completedByUserId;
@@ -126,18 +129,19 @@ namespace PaySplit.Domain.Payouts
             {
                 Reference = reference.Trim();
             }
+            return Result.Success();
         }
 
-        public void Reject(Guid rejectedByUserId, DateTimeOffset rejectedAtUtc, string? notes = null)
+        public Result Reject(Guid rejectedByUserId, DateTimeOffset rejectedAtUtc, string? notes = null)
         {
             if (Status != PayoutStatus.Requested)
-                throw new PayoutInvalidStatusTransitionException("reject", Status);
+                return Result.Failure(new PayoutInvalidStatusTransitionException("reject", Status).Message);
 
             if (rejectedByUserId == Guid.Empty)
-                throw new ArgumentException("Rejected by user id is required.", nameof(rejectedByUserId));
+                return Result.Failure("Rejected by user id is required.");
 
             if (rejectedAtUtc == default)
-                throw new ArgumentException("Rejected time is required.", nameof(rejectedAtUtc));
+                return Result.Failure("Rejected time is required.");
 
             Status = PayoutStatus.Rejected;
             RejectedByUserId = rejectedByUserId;
@@ -147,6 +151,7 @@ namespace PaySplit.Domain.Payouts
             {
                 Notes = notes.Trim();
             }
+            return Result.Success();
         }
     }
 }

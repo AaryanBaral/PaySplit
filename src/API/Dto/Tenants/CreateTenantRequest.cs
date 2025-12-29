@@ -1,8 +1,8 @@
 namespace PaySplit.API.Dto.Tenants
 {
-    public class CreateTenantRequest
+    public sealed record CreateTenantRequest
     {
-        public string Name { get; set; } = default!;
-        public string? DefaultCurrency { get; set; }
+        public required string Name { get; init; }
+        public string? DefaultCurrency { get; init; }
     }
 }

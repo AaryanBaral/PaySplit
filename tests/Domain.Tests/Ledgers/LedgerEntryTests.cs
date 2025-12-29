@@ -9,74 +9,86 @@ namespace PaySplit.Domain.Tests.Ledgers
         [Fact]
         public void CreateMerchantCredit_WithEmptyTenantId_ShouldThrow()
         {
-            Assert.Throws<ArgumentException>(() =>
-                LedgerEntry.CreateMerchantCredit(
-                    Guid.Empty,
-                    Guid.NewGuid(),
-                    Money.Create("USD", 10m),
-                    LedgerEntrySourceType.Payment,
-                    Guid.NewGuid(),
-                    "desc",
-                    DateTimeOffset.UtcNow));
+            var amount = Money.Create("USD", 10m).Value!;
+            var result = LedgerEntry.CreateMerchantCredit(
+                Guid.Empty,
+                Guid.NewGuid(),
+                amount,
+                LedgerEntrySourceType.Payment,
+                Guid.NewGuid(),
+                "desc",
+                DateTimeOffset.UtcNow);
+
+            Assert.False(result.IsSuccess);
         }
 
         [Fact]
         public void CreateMerchantCredit_WithEmptySourceId_ShouldThrow()
         {
-            Assert.Throws<ArgumentException>(() =>
-                LedgerEntry.CreateMerchantCredit(
-                    Guid.NewGuid(),
-                    Guid.NewGuid(),
-                    Money.Create("USD", 10m),
-                    LedgerEntrySourceType.Payment,
-                    Guid.Empty,
-                    "desc",
-                    DateTimeOffset.UtcNow));
+            var amount = Money.Create("USD", 10m).Value!;
+            var result = LedgerEntry.CreateMerchantCredit(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                amount,
+                LedgerEntrySourceType.Payment,
+                Guid.Empty,
+                "desc",
+                DateTimeOffset.UtcNow);
+
+            Assert.False(result.IsSuccess);
         }
 
         [Fact]
         public void CreateTenantCredit_ShouldSucceed()
         {
-            var entry = LedgerEntry.CreateTenantCredit(
+            var amount = Money.Create("USD", 10m).Value!;
+            var result = LedgerEntry.CreateTenantCredit(
                 Guid.NewGuid(),
-                Money.Create("USD", 10m),
+                amount,
                 LedgerEntrySourceType.Payment,
                 Guid.NewGuid(),
                 "desc",
                 DateTimeOffset.UtcNow);
 
-            Assert.Equal(LedgerEntryKind.TenantCredit, entry.Kind);
-            Assert.Null(entry.MerchantId);
+            Assert.True(result.IsSuccess);
+            Assert.NotNull(result.Value);
+            Assert.Equal(LedgerEntryKind.TenantCredit, result.Value!.Kind);
+            Assert.Null(result.Value.MerchantId);
         }
 
         [Fact]
         public void CreateMerchantCredit_WithEmptyDescription_ShouldThrow()
         {
-            Assert.Throws<ArgumentException>(() =>
-                LedgerEntry.CreateMerchantCredit(
-                    Guid.NewGuid(),
-                    Guid.NewGuid(),
-                    Money.Create("USD", 10m),
-                    LedgerEntrySourceType.Payment,
-                    Guid.NewGuid(),
-                    " ",
-                    DateTimeOffset.UtcNow));
+            var amount = Money.Create("USD", 10m).Value!;
+            var result = LedgerEntry.CreateMerchantCredit(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                amount,
+                LedgerEntrySourceType.Payment,
+                Guid.NewGuid(),
+                " ",
+                DateTimeOffset.UtcNow);
+
+            Assert.False(result.IsSuccess);
         }
 
         [Fact]
         public void CreateMerchantCredit_ShouldSucceed()
         {
-            var entry = LedgerEntry.CreateMerchantCredit(
+            var amount = Money.Create("USD", 10m).Value!;
+            var result = LedgerEntry.CreateMerchantCredit(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
-                Money.Create("USD", 10m),
+                amount,
                 LedgerEntrySourceType.Payment,
                 Guid.NewGuid(),
                 "desc",
                 DateTimeOffset.UtcNow);
 
-            Assert.Equal(LedgerEntryKind.MerchantCredit, entry.Kind);
-            Assert.NotNull(entry.MerchantId);
+            Assert.True(result.IsSuccess);
+            Assert.NotNull(result.Value);
+            Assert.Equal(LedgerEntryKind.MerchantCredit, result.Value!.Kind);
+            Assert.NotNull(result.Value.MerchantId);
         }
     }
 }

@@ -3,7 +3,6 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using MediatR;
 
 namespace PaySplit.Application.Tenants.Command.UpdateTenant
@@ -28,17 +27,10 @@ namespace PaySplit.Application.Tenants.Command.UpdateTenant
             {
                 return Result<RenameTenantResult>.Failure("Tenant not found");
             }
-            try
+            var renameResult = tenant.Rename(command.Name);
+            if (!renameResult.IsSuccess)
             {
-                tenant.Rename(command.Name);
-            }
-            catch (DomainException ex)
-            {
-                return Result<RenameTenantResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return Result<RenameTenantResult>.Failure(ex.Message);
+                return Result<RenameTenantResult>.Failure(renameResult.Error ?? "Tenant name is invalid.");
             }
 
             await _unitOfWork.SaveChangesAsync();

@@ -1,15 +1,15 @@
 namespace PaySplit.API.Dto.Merchants
 {
-    public class MerchantResponse
+    public sealed record MerchantResponse
     {
-        public Guid Id { get; set; }
-        public Guid TenantId { get; set; }
-        public string Name { get; set; } = default!;
-        public string Email { get; set; } = default!;
-        public decimal RevenueShare { get; set; }
-        public string Status { get; set; } = default!;
-        public DateTimeOffset CreatedAtUtc { get; set; }
-        public DateTimeOffset? DeactivatedAtUtc { get; set; }
-        public DateTimeOffset? SuspendedAtUtc { get; set; }
+        public Guid Id { get; init; }
+        public Guid TenantId { get; init; }
+        public required string Name { get; init; }
+        public required string Email { get; init; }
+        public decimal RevenueShare { get; init; }
+        public required string Status { get; init; }
+        public DateTimeOffset CreatedAtUtc { get; init; }
+        public DateTimeOffset? DeactivatedAtUtc { get; init; }
+        public DateTimeOffset? SuspendedAtUtc { get; init; }
     }
 }

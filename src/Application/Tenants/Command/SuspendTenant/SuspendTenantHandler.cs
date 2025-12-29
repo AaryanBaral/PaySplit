@@ -3,7 +3,6 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Tenants;
 using MediatR;
 
@@ -30,17 +29,10 @@ namespace PaySplit.Application.Tenants.Command.SuspendTenant
             {
                 return Result<SuspendTenantResult>.Failure("Tenant is already Suspended");
             }
-            try
+            var suspendResult = tenant.Suspend();
+            if (!suspendResult.IsSuccess)
             {
-                tenant.Suspend();
-            }
-            catch (DomainException ex)
-            {
-                return Result<SuspendTenantResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return Result<SuspendTenantResult>.Failure(ex.Message);
+                return Result<SuspendTenantResult>.Failure(suspendResult.Error ?? "Tenant suspension failed.");
             }
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result<SuspendTenantResult>.Success(tenant.ToSuspendTenantResult());

@@ -3,7 +3,6 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Tenants;
 using MediatR;
 
@@ -30,17 +29,10 @@ namespace PaySplit.Application.Tenants.Command.ActivateTenant
             {
                 return Result<ActivateTenantResult>.Failure("Tenant is already Activated");
             }
-            try
+            var activateResult = tenant.Activate();
+            if (!activateResult.IsSuccess)
             {
-                tenant.Activate();
-            }
-            catch (DomainException ex)
-            {
-                return Result<ActivateTenantResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return Result<ActivateTenantResult>.Failure(ex.Message);
+                return Result<ActivateTenantResult>.Failure(activateResult.Error ?? "Tenant activation failed.");
             }
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result<ActivateTenantResult>.Success(tenant.ToActivateTenantResult());

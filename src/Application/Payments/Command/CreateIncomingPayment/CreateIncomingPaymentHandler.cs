@@ -3,18 +3,19 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
+using PaySplit.Application.Payments.Command.CreatePayment;
 using PaySplit.Domain.Payments;
 
-namespace PaySplit.Application.Payments.Command.CreatePayment
+namespace PaySplit.Application.Payments.Command.CreateIncomingPayment
 {
-    public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand, Result<CreatePaymentResult>>
+    public sealed class CreateIncomingPaymentHandler : IRequestHandler<CreateIncomingPaymentCommand, Result<CreatePaymentResult>>
     {
         private readonly ITenantRepository _tenantRepository;
         private readonly IMerchantRepository _merchantRepository;
         private readonly IPaymentRepository _paymentRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CreatePaymentHandler(
+        public CreateIncomingPaymentHandler(
             ITenantRepository tenantRepository,
             IMerchantRepository merchantRepository,
             IPaymentRepository paymentRepository,
@@ -26,16 +27,16 @@ namespace PaySplit.Application.Payments.Command.CreatePayment
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<CreatePaymentResult>> Handle(CreatePaymentCommand command, CancellationToken ct)
+        public async Task<Result<CreatePaymentResult>> Handle(CreateIncomingPaymentCommand command, CancellationToken ct)
         {
-            // Validate input (fast fail)
             if (command.TenantId == Guid.Empty) return Result<CreatePaymentResult>.Failure("tenantId is required");
             if (command.MerchantId == Guid.Empty) return Result<CreatePaymentResult>.Failure("merchantId is required");
             if (command.PaymentAmount <= 0m) return Result<CreatePaymentResult>.Failure("paymentAmount must be > 0");
             if (string.IsNullOrWhiteSpace(command.Currency) || command.Currency.Length != 3)
                 return Result<CreatePaymentResult>.Failure("currency must be a 3-letter ISO code");
+            if (string.IsNullOrWhiteSpace(command.ExternalPaymentId))
+                return Result<CreatePaymentResult>.Failure("externalPaymentId is required");
 
-            // Fetch tenant/merchant
             var tenant = await _tenantRepository.GetByIdAsync(command.TenantId, ct);
             if (tenant is null) return Result<CreatePaymentResult>.Failure("tenant not found");
             if (!tenant.IsActive) return Result<CreatePaymentResult>.Failure("tenant inactive");
@@ -44,11 +45,20 @@ namespace PaySplit.Application.Payments.Command.CreatePayment
             if (merchant is null) return Result<CreatePaymentResult>.Failure("merchant not found");
             if (!merchant.IsActive) return Result<CreatePaymentResult>.Failure("merchant inactive");
 
-            var paymentResult = Payment.CreatePending(
+            var existing = await _paymentRepository.GetByExternalIdAsync(
+                command.TenantId, command.ExternalPaymentId.Trim(), ct);
+
+            if (existing is not null)
+            {
+                return Result<CreatePaymentResult>.Success(existing.ToCreatePaymentResult());
+            }
+
+            var paymentResult = Payment.CreateIncoming(
                 command.TenantId,
                 command.MerchantId,
                 command.PaymentAmount,
-                command.Currency.ToUpperInvariant());
+                command.Currency.ToUpperInvariant(),
+                command.ExternalPaymentId.Trim());
 
             if (!paymentResult.IsSuccess || paymentResult.Value is null)
             {

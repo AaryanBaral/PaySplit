@@ -2,7 +2,6 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Ledgers;
 using PaySplit.Domain.Payouts;
 using MediatR;
@@ -53,24 +52,19 @@ namespace PaySplit.Application.Payouts.Commands.CompletePayout
             }
 
             // 4. Domain change: mark as completed
-            try
+            var completeResult = payout.MarkCompleted(
+                command.CompletedByUserId,
+                command.CompletedAtUtc,
+                command.Reference);
+
+            if (!completeResult.IsSuccess)
             {
-                payout.MarkCompleted(
-                    command.CompletedByUserId,
-                    command.CompletedAtUtc,
-                    command.Reference);
-            }
-            catch (DomainException ex)
-            {
-                return Result<CompletePayoutResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return Result<CompletePayoutResult>.Failure(ex.Message);
+                return Result<CompletePayoutResult>.Failure(
+                    completeResult.Error ?? "Payout completion failed.");
             }
 
             // 5. Create ledger entry: merchant debit (their balance goes down)
-            var merchantDebitEntry = LedgerEntry.CreateMerchantDebit(
+            var merchantDebitResult = LedgerEntry.CreateMerchantDebit(
                 tenantId: payout.TenantId,
                 merchantId: payout.MerchantId,
                 amount: payout.Amount,
@@ -79,7 +73,13 @@ namespace PaySplit.Application.Payouts.Commands.CompletePayout
                 description: $"Payout {payout.Id} completed",
                 occurredAtUtc: command.CompletedAtUtc);
 
-            await _ledgerEntryRepository.AddAsync(merchantDebitEntry, cancellationToken);
+            if (!merchantDebitResult.IsSuccess || merchantDebitResult.Value is null)
+            {
+                return Result<CompletePayoutResult>.Failure(
+                    merchantDebitResult.Error ?? "Ledger entry failed.");
+            }
+
+            await _ledgerEntryRepository.AddAsync(merchantDebitResult.Value, cancellationToken);
 
             // 6. Save all changes
             await _unitOfWork.SaveChangesAsync(cancellationToken);

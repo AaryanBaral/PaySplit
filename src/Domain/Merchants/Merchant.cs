@@ -1,5 +1,6 @@
 
 using PaySplit.Domain.Common;
+using PaySplit.Domain.Common.Results;
 using PaySplit.Domain.Merchants.Exceptions;
 
 namespace PaySplit.Domain.Merchants
@@ -26,14 +27,6 @@ namespace PaySplit.Domain.Merchants
             DateTimeOffset createdAtUtc,
             MerchantStatus status) : base()
         {
-            if (tenantId == Guid.Empty)
-                throw new ArgumentException("Tenant id is required.", nameof(tenantId));
-
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Name is required.", nameof(name));
-
-            if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentException("Email is required.", nameof(email));
             TenantId = tenantId;
             Name = name.Trim();
             RevenueShare = revenueShare;
@@ -42,54 +35,83 @@ namespace PaySplit.Domain.Merchants
             CreatedAtUtc = createdAtUtc;
             ApplyStatusTimestamps(status);
         }
-        public static Merchant Create(
+        public static Result<Merchant> Create(
             Guid tenantId,
             string name,
             string email,
             decimal revenueSharePercentage,
             MerchantStatus status = MerchantStatus.Active)
         {
-            var percentage = Percentage.Create(revenueSharePercentage);
-            return new Merchant(tenantId, name, email, percentage, DateTimeOffset.UtcNow, status);
-        }
-        public void UpdateDetails(string name, string email)
-        {
+            if (tenantId == Guid.Empty)
+                return Result<Merchant>.Failure("Tenant id is required.");
+
             if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Name is required.", nameof(name));
+                return Result<Merchant>.Failure("Name is required.");
 
             if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentException("Email is required.", nameof(email));
+                return Result<Merchant>.Failure("Email is required.");
+
+            var percentageResult = Percentage.Create(revenueSharePercentage);
+            if (!percentageResult.IsSuccess || percentageResult.Value is null)
+                return Result<Merchant>.Failure(percentageResult.Error ?? "Revenue share percentage is invalid.");
+
+            var merchant = new Merchant(
+                tenantId,
+                name,
+                email,
+                percentageResult.Value,
+                DateTimeOffset.UtcNow,
+                status);
+
+            return Result<Merchant>.Success(merchant);
+        }
+        public Result UpdateDetails(string name, string email)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return Result.Failure("Name is required.");
+
+            if (string.IsNullOrWhiteSpace(email))
+                return Result.Failure("Email is required.");
 
             Name = name.Trim();
             Email = email.Trim().ToLowerInvariant();
+            return Result.Success();
         }
-        public void UpdateRevenueShare(decimal revenueSharePercentage)
+        public Result UpdateRevenueShare(decimal revenueSharePercentage)
         {
-            RevenueShare = Percentage.Create(revenueSharePercentage);
+            var percentageResult = Percentage.Create(revenueSharePercentage);
+            if (!percentageResult.IsSuccess || percentageResult.Value is null)
+                return Result.Failure(percentageResult.Error ?? "Revenue share percentage is invalid.");
+
+            RevenueShare = percentageResult.Value;
+            return Result.Success();
         }
-        public void Deactivate()
+        public Result Deactivate()
         {
             if (Status == MerchantStatus.Inactive)
-                throw new MerchantInactiveException();
+                return Result.Failure(new MerchantInactiveException().Message);
             Status = MerchantStatus.Inactive;
             DeactivatedAtUtc = DateTimeOffset.UtcNow;
             SuspendedAtUtc = null;
+            return Result.Success();
         }
-        public void Activate()
+        public Result Activate()
         {
             if (Status == MerchantStatus.Active)
-                throw new MerchantAlreadyActiveException();
+                return Result.Failure(new MerchantAlreadyActiveException().Message);
             Status = MerchantStatus.Active;
             DeactivatedAtUtc = null;
             SuspendedAtUtc = null;
+            return Result.Success();
         }
-        public void Suspend()
+        public Result Suspend()
         {
             if (Status == MerchantStatus.Suspended)
-                throw new MerchantAlreadySuspendedException();
+                return Result.Failure(new MerchantAlreadySuspendedException().Message);
             Status = MerchantStatus.Suspended;
             SuspendedAtUtc = DateTimeOffset.UtcNow;
             DeactivatedAtUtc = null;
+            return Result.Success();
         }
 
         private void ApplyStatusTimestamps(MerchantStatus status)

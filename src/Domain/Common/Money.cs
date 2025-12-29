@@ -1,3 +1,5 @@
+using PaySplit.Domain.Common.Results;
+
 namespace PaySplit.Domain.Common
 {
     public class Money : ValueObject
@@ -17,21 +19,21 @@ namespace PaySplit.Domain.Common
             Amount = amount;
         }
 
-        public static Money Create(string currency, decimal amount)
+        public static Result<Money> Create(string currency, decimal amount)
         {
             if (string.IsNullOrWhiteSpace(currency))
             {
-                throw new ArgumentException("Currency is required.", nameof(currency));
+                return Result<Money>.Failure("Currency is required.");
             }
             if (amount < 0)
             {
-                throw new Exceptions.MoneyAmountNegativeException(amount);
+                return Result<Money>.Failure($"Amount cannot be negative. Received: {amount}.");
             }
 
-            return new Money(currency.Trim().ToUpperInvariant(), amount);
+            return Result<Money>.Success(new Money(currency.Trim().ToUpperInvariant(), amount));
         }
 
-        public static Money CreateZero(string currency) => Create(currency, 0m);
+        public static Result<Money> CreateZero(string currency) => Create(currency, 0m);
 
         public Money Subtract(Money another)
         {

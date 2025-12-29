@@ -1,9 +1,9 @@
 namespace PaySplit.API.Dto.Merchants
 {
-    public class UpdateMerchantRequest
+    public sealed record UpdateMerchantRequest
     {
-        public string Name { get; set; } = default!;
-        public string Email { get; set; } = default!;
-        public decimal RevenueSharePercentage { get; set; }
+        public required string Name { get; init; }
+        public required string Email { get; init; }
+        public decimal RevenueSharePercentage { get; init; }
     }
 }

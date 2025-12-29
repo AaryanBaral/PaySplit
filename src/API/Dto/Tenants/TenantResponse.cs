@@ -1,12 +1,12 @@
 namespace PaySplit.API.Dto.Tenants
 {
-    public class TenantResponse
+    public sealed record TenantResponse
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = default!;
-        public string Status { get; set; } = default!;
-        public DateTimeOffset CreatedAtUtc { get; set; }
-        public DateTimeOffset? DeactivatedAtUtc { get; set; }
-        public DateTimeOffset? SuspendedAtUtc { get; set; }
+        public Guid Id { get; init; }
+        public required string Name { get; init; }
+        public required string Status { get; init; }
+        public DateTimeOffset CreatedAtUtc { get; init; }
+        public DateTimeOffset? DeactivatedAtUtc { get; init; }
+        public DateTimeOffset? SuspendedAtUtc { get; init; }
     }
 }

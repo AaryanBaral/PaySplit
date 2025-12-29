@@ -1,5 +1,4 @@
 using PaySplit.Domain.Common;
-using PaySplit.Domain.Common.Exceptions;
 using Xunit;
 
 namespace PaySplit.Domain.Tests.Common
@@ -9,9 +8,11 @@ namespace PaySplit.Domain.Tests.Common
         [Fact]
         public void Create_WithValidValue_ShouldReturnPercentage()
         {
-            var percentage = Percentage.Create(12.5m);
+            var result = Percentage.Create(12.5m);
 
-            Assert.Equal(12.5m, percentage.Value);
+            Assert.True(result.IsSuccess);
+            Assert.NotNull(result.Value);
+            Assert.Equal(12.5m, result.Value!.Value);
         }
 
         [Theory]
@@ -20,13 +21,15 @@ namespace PaySplit.Domain.Tests.Common
         [InlineData(-1)]
         public void Create_WithInvalidValue_ShouldThrow(decimal value)
         {
-            Assert.Throws<PercentageOutOfRangeException>(() => Percentage.Create(value));
+            var result = Percentage.Create(value);
+            Assert.False(result.IsSuccess);
+            Assert.Equal("Percentage must be between 0 and 100 (exclusive).", result.Error);
         }
 
         [Fact]
         public void AsFraction_ShouldReturnDecimalFraction()
         {
-            var percentage = Percentage.Create(12.5m);
+            var percentage = Percentage.Create(12.5m).Value!;
 
             Assert.Equal(0.125m, percentage.AsFraction());
         }

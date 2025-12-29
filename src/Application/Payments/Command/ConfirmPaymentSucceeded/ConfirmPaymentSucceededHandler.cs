@@ -1,7 +1,6 @@
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Ledgers;
 using PaySplit.Domain.Merchants;
 using PaySplit.Domain.Payments;
@@ -42,18 +41,10 @@ namespace PaySplit.Application.Payments.Command.ConfirmPaymentSucceeded
             {
                 return Result.Failure("Only pending payments can be marked as succeeded.");
             }
-            try
+            var markResult = payment.MarkSucceeded(command.CompletedAtUtc);
+            if (!markResult.IsSuccess)
             {
-                payment.MarkSucceeded(command.CompletedAtUtc);
-            }
-            catch (DomainException ex)
-            {
-                // Should be rare, but we still turn it into a clean failure
-                return Result.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return Result.Failure(ex.Message);
+                return Result.Failure(markResult.Error ?? "Payment status update failed.");
             }
 
             // Load the merchant to get revenue share
@@ -66,12 +57,17 @@ namespace PaySplit.Application.Payments.Command.ConfirmPaymentSucceeded
 
 
             // calculating the share split
-            (PaySplit.Domain.Common.Money merchantAmount, PaySplit.Domain.Common.Money tenantShareAmount) = payment.CalculateRevenueSplit(merchant.RevenueShare);
+            var splitResult = payment.CalculateRevenueSplit(merchant.RevenueShare);
+            if (!splitResult.IsSuccess)
+            {
+                return Result.Failure(splitResult.Error ?? "Unable to calculate revenue split.");
+            }
+            var (merchantAmount, tenantShareAmount) = splitResult.Value;
 
 
             // Create ledger entries
             // Merchant credit (they earned money from this payment)
-            var merchantCreditEntry = LedgerEntry.CreateMerchantCredit(
+            var merchantCreditResult = LedgerEntry.CreateMerchantCredit(
                 tenantId: payment.TenantId,
                 merchantId: payment.MerchantId,
                 amount: merchantAmount,
@@ -81,7 +77,7 @@ namespace PaySplit.Application.Payments.Command.ConfirmPaymentSucceeded
                 occurredAtUtc: command.CompletedAtUtc);
 
             //  Tenant credit (tenant revenue from this payment)
-            var tenantCreditEntry = LedgerEntry.CreateTenantCredit(
+            var tenantCreditResult = LedgerEntry.CreateTenantCredit(
                 tenantId: payment.TenantId,
                 amount: tenantShareAmount,
                 sourceType: LedgerEntrySourceType.Payment,
@@ -90,8 +86,14 @@ namespace PaySplit.Application.Payments.Command.ConfirmPaymentSucceeded
                 occurredAtUtc: command.CompletedAtUtc);
 
             //  Persist ledger entries
-            await _ledgerEntryRepository.AddAsync(merchantCreditEntry, cancellationToken);
-            await _ledgerEntryRepository.AddAsync(tenantCreditEntry, cancellationToken);
+            if (!merchantCreditResult.IsSuccess || merchantCreditResult.Value is null)
+                return Result.Failure(merchantCreditResult.Error ?? "Merchant ledger entry failed.");
+
+            if (!tenantCreditResult.IsSuccess || tenantCreditResult.Value is null)
+                return Result.Failure(tenantCreditResult.Error ?? "Tenant ledger entry failed.");
+
+            await _ledgerEntryRepository.AddAsync(merchantCreditResult.Value, cancellationToken);
+            await _ledgerEntryRepository.AddAsync(tenantCreditResult.Value, cancellationToken);
 
             // 8 Save all changes (payment + ledger entries) in a transaction
             await _unitOfWork.SaveChangesAsync(cancellationToken);

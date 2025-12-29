@@ -1,10 +1,10 @@
 namespace PaySplit.API.Dto.Merchants
 {
-    public class CreateMerchantRequest
+    public sealed record CreateMerchantRequest
     {
-        public Guid TenantId { get; set; }
-        public string Name { get; set; } = default!;
-        public string Email { get; set; } = default!;
-        public decimal RevenueSharePercentage { get; set; }
+        public Guid TenantId { get; init; }
+        public required string Name { get; init; }
+        public required string Email { get; init; }
+        public decimal RevenueSharePercentage { get; init; }
     }
 }

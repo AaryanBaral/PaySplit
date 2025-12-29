@@ -2,7 +2,6 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Payouts;
 using MediatR;
 
@@ -49,17 +48,10 @@ namespace PaySplit.Application.Payouts.Commands.ApprovePayout
             }
 
             // 4. Domain-level state change
-            try
+            var approveResult = payout.Approve(command.ApprovedByUserId, DateTimeOffset.UtcNow);
+            if (!approveResult.IsSuccess)
             {
-                payout.Approve(command.ApprovedByUserId, DateTimeOffset.UtcNow);
-            }
-            catch (DomainException ex)
-            {
-                return Result<ApprovePayoutResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return Result<ApprovePayoutResult>.Failure(ex.Message);
+                return Result<ApprovePayoutResult>.Failure(approveResult.Error ?? "Payout approval failed.");
             }
 
             // 5. Save

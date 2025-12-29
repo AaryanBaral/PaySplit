@@ -3,7 +3,6 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Payouts;
 
 namespace PaySplit.Application.Payouts.Commands.RejectPayout
@@ -50,20 +49,15 @@ namespace PaySplit.Application.Payouts.Commands.RejectPayout
             }
             
             // 4. Domain operation
-            try
+            var rejectResult = payout.Reject(
+                command.RejectedByUserId,
+                command.RejectedAtUtc,
+                command.Notes);
+
+            if (!rejectResult.IsSuccess)
             {
-                payout.Reject(
-                    command.RejectedByUserId,
-                    command.RejectedAtUtc,
-                    command.Notes);
-            }
-            catch (DomainException ex)
-            {
-                return Result<RejectPayoutResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return Result<RejectPayoutResult>.Failure(ex.Message);
+                return Result<RejectPayoutResult>.Failure(
+                    rejectResult.Error ?? "Payout rejection failed.");
             }
 
             // 5. Persist

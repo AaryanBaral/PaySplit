@@ -5,7 +5,6 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Merchants;
 
 namespace PaySplit.Application.Merchants.Command.CreateMerchant
@@ -25,30 +24,25 @@ namespace PaySplit.Application.Merchants.Command.CreateMerchant
 
         public async Task<Result<CreateMerchantResult>> HandleAsync(CreateMerchantCommand command, CancellationToken cancellationToken = default)
         {
-            Merchant merchant;
-            try
+            _logger.LogInformation(
+                "Creating merchant for tenant {TenantId} with revenue share {RevenueSharePercentage}",
+                command.TenantId,
+                command.RevenueSharePercentage);
+
+            var merchantResult = Merchant.Create(
+                command.TenantId,
+                command.Name,
+                command.Email,
+                command.RevenueSharePercentage);
+
+            if (!merchantResult.IsSuccess || merchantResult.Value is null)
             {
-                _logger.LogInformation(
-                    "Creating merchant for tenant {TenantId} with revenue share {RevenueSharePercentage}",
-                    command.TenantId,
-                    command.RevenueSharePercentage);
-                merchant = Merchant.Create(
-                    command.TenantId,
-                    command.Name,
-                    command.Email,
-                    command.RevenueSharePercentage);
-            }
-            catch (DomainException ex)
-            {
-                _logger.LogWarning("Create merchant failed: {Error}", ex.Message);
-                return Result<CreateMerchantResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning("Create merchant failed: {Error}", ex.Message);
-                return Result<CreateMerchantResult>.Failure(ex.Message);
+                var error = merchantResult.Error ?? "Merchant is invalid.";
+                _logger.LogWarning("Create merchant failed: {Error}", error);
+                return Result<CreateMerchantResult>.Failure(error);
             }
 
+            var merchant = merchantResult.Value;
             await _repository.AddAsync(merchant, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

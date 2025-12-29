@@ -2,7 +2,6 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using MediatR;
 
 namespace PaySplit.Application.Merchants.Command.UpdateMerchant
@@ -46,18 +45,16 @@ namespace PaySplit.Application.Merchants.Command.UpdateMerchant
                 return Result<UpdateMerchantResult>.Failure("Merchant not found");
             }
 
-            try
+            var detailsResult = merchant.UpdateDetails(command.Name, command.Email);
+            if (!detailsResult.IsSuccess)
             {
-                merchant.UpdateDetails(command.Name, command.Email);
-                merchant.UpdateRevenueShare(command.RevenueSharePercentage);
+                return Result<UpdateMerchantResult>.Failure(detailsResult.Error ?? "Merchant details are invalid.");
             }
-            catch (DomainException ex)
+
+            var shareResult = merchant.UpdateRevenueShare(command.RevenueSharePercentage);
+            if (!shareResult.IsSuccess)
             {
-                return Result<UpdateMerchantResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return Result<UpdateMerchantResult>.Failure(ex.Message);
+                return Result<UpdateMerchantResult>.Failure(shareResult.Error ?? "Revenue share is invalid.");
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

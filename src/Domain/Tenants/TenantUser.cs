@@ -1,4 +1,5 @@
 using PaySplit.Domain.Common;
+using PaySplit.Domain.Common.Results;
 using PaySplit.Domain.Tenants.Exceptions;
 
 namespace PaySplit.Domain.Tenants
@@ -23,15 +24,6 @@ namespace PaySplit.Domain.Tenants
             DateTimeOffset joinedAtUtc, TenantUserStatus status)
             : base()
         {
-            if (tenantId == Guid.Empty)
-                throw new ArgumentException("Tenant id is required.", nameof(tenantId));
-
-            if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentException("Email is required.", nameof(email));
-
-            if (string.IsNullOrWhiteSpace(displayName))
-                throw new ArgumentException("Display name is required.", nameof(displayName));
-
             TenantId = tenantId;
             Email = email.Trim().ToLowerInvariant();
             DisplayName = displayName.Trim();
@@ -41,7 +33,7 @@ namespace PaySplit.Domain.Tenants
         }
 
         // Factory: create a tenant user
-        public static TenantUser Create(
+        public static Result<TenantUser> Create(
             Guid tenantId,
             string email,
             string displayName,
@@ -49,42 +41,57 @@ namespace PaySplit.Domain.Tenants
             DateTimeOffset joinedAtUtc,
             TenantUserStatus status = TenantUserStatus.Active)
         {
-            return new TenantUser(tenantId, email, displayName, role, joinedAtUtc, status);
+            if (tenantId == Guid.Empty)
+                return Result<TenantUser>.Failure("Tenant id is required.");
+
+            if (string.IsNullOrWhiteSpace(email))
+                return Result<TenantUser>.Failure("Email is required.");
+
+            if (string.IsNullOrWhiteSpace(displayName))
+                return Result<TenantUser>.Failure("Display name is required.");
+
+            return Result<TenantUser>.Success(
+                new TenantUser(tenantId, email, displayName, role, joinedAtUtc, status));
         }
 
-        public void ChangeRole(TenantUserRole newRole)
+        public Result ChangeRole(TenantUserRole newRole)
         {
             if (Status != TenantUserStatus.Active)
-                throw new TenantUserNotActiveException();
+                return Result.Failure(new TenantUserNotActiveException().Message);
 
             Role = newRole;
+            return Result.Success();
         }
 
-        public void Deactivate()
+        public Result Deactivate()
         {
             if (Status == TenantUserStatus.Inactive)
-                throw new TenantUserAlreadyInactiveException();
+                return Result.Failure(new TenantUserAlreadyInactiveException().Message);
             Status = TenantUserStatus.Inactive;
+            return Result.Success();
         }
-        public void Activate()
+        public Result Activate()
         {
             if (Status == TenantUserStatus.Active)
-                throw new TenantUserAlreadyActiveException();
+                return Result.Failure(new TenantUserAlreadyActiveException().Message);
             Status = TenantUserStatus.Active;
+            return Result.Success();
         }
-        public void Suspend()
+        public Result Suspend()
         {
             if (Status == TenantUserStatus.Suspended)
-                throw new TenantUserAlreadySuspendedException();
+                return Result.Failure(new TenantUserAlreadySuspendedException().Message);
             Status = TenantUserStatus.Suspended;
+            return Result.Success();
         }
 
-        public void UpdateProfile(string displayName)
+        public Result UpdateProfile(string displayName)
         {
             if (string.IsNullOrWhiteSpace(displayName))
-                throw new ArgumentException("Display name is required.", nameof(displayName));
+                return Result.Failure("Display name is required.");
 
             DisplayName = displayName.Trim();
+            return Result.Success();
         }
     }
 }

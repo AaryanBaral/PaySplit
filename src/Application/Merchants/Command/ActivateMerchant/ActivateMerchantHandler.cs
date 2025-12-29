@@ -2,7 +2,6 @@ using PaySplit.Application.Common.Mappings;
 using PaySplit.Application.Common.Results;
 using PaySplit.Application.Interfaces.Persistence;
 using PaySplit.Application.Interfaces.Repository;
-using PaySplit.Domain.Common.Exceptions;
 using PaySplit.Domain.Merchants;
 using MediatR;
 
@@ -32,17 +31,10 @@ namespace PaySplit.Application.Merchants.Command.ActivateMerchant
                 return Result<ActivateMerchantResult>.Failure("Merchant is already Activated");
             }
 
-            try
+            var activateResult = merchant.Activate();
+            if (!activateResult.IsSuccess)
             {
-                merchant.Activate();
-            }
-            catch (DomainException ex)
-            {
-                return Result<ActivateMerchantResult>.Failure(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return Result<ActivateMerchantResult>.Failure(ex.Message);
+                return Result<ActivateMerchantResult>.Failure(activateResult.Error ?? "Merchant activation failed.");
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

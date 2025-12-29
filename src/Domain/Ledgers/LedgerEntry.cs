@@ -1,6 +1,7 @@
 
 
 using PaySplit.Domain.Common;
+using PaySplit.Domain.Common.Results;
 using PaySplit.Domain.Ledgers.Exceptions;
 
 namespace PaySplit.Domain.Ledgers
@@ -32,31 +33,6 @@ namespace PaySplit.Domain.Ledgers
         string description,
         DateTimeOffset occurredAtUtc) : base()
         {
-            if (tenantId == Guid.Empty)
-                throw new ArgumentException("Tenant id is required.", nameof(tenantId));
-
-            if (amount is null)
-                throw new ArgumentNullException(nameof(amount));
-
-            if (amount.Amount <= 0)
-                throw new LedgerAmountInvalidException(amount.Amount);
-
-            if (sourceId == Guid.Empty)
-                throw new ArgumentException("Source id is required.", nameof(sourceId));
-
-            if (string.IsNullOrWhiteSpace(description))
-                throw new ArgumentException("Description is required.", nameof(description));
-
-            if (occurredAtUtc == default)
-                throw new ArgumentException("Occurred time is required.", nameof(occurredAtUtc));
-
-            var isMerchantKind = kind == LedgerEntryKind.MerchantCredit || kind == LedgerEntryKind.MerchantDebit;
-            if (isMerchantKind && merchantId is null)
-                throw new ArgumentException("Merchant id is required for merchant ledger entries.", nameof(merchantId));
-
-            if (!isMerchantKind && merchantId is not null)
-                throw new ArgumentException("Merchant id must be null for tenant ledger entries.", nameof(merchantId));
-
             TenantId = tenantId;
             MerchantId = merchantId;
             Amount = amount;
@@ -66,7 +42,7 @@ namespace PaySplit.Domain.Ledgers
             Description = description.Trim();
             OccurredAtUtc = occurredAtUtc;
         }
-        public static LedgerEntry CreateMerchantCredit(
+        public static Result<LedgerEntry> CreateMerchantCredit(
     Guid tenantId,
     Guid merchantId,
     Money amount,
@@ -75,7 +51,7 @@ namespace PaySplit.Domain.Ledgers
     string description,
     DateTimeOffset occurredAtUtc)
         {
-            return new LedgerEntry(
+            return Create(
                 tenantId,
                 merchantId,
                 amount,
@@ -85,7 +61,7 @@ namespace PaySplit.Domain.Ledgers
                 description,
                 occurredAtUtc);
         }
-        public static LedgerEntry CreateMerchantDebit(
+        public static Result<LedgerEntry> CreateMerchantDebit(
         Guid tenantId,
         Guid merchantId,
         Money amount,
@@ -94,7 +70,7 @@ namespace PaySplit.Domain.Ledgers
         string description,
         DateTimeOffset occurredAtUtc)
         {
-            return new LedgerEntry(
+            return Create(
                 tenantId,
                 merchantId,
                 amount,
@@ -105,7 +81,7 @@ namespace PaySplit.Domain.Ledgers
                 occurredAtUtc);
         }
 
-        public static LedgerEntry CreateTenantCredit(
+        public static Result<LedgerEntry> CreateTenantCredit(
         Guid tenantId,
         Money amount,
         LedgerEntrySourceType sourceType,
@@ -113,7 +89,7 @@ namespace PaySplit.Domain.Ledgers
         string description,
         DateTimeOffset occurredAtUtc)
         {
-            return new LedgerEntry(
+            return Create(
                 tenantId,
                 merchantId: null,
                 amount,
@@ -123,7 +99,7 @@ namespace PaySplit.Domain.Ledgers
                 description,
                 occurredAtUtc);
         }
-        public static LedgerEntry CreateTenantDebit(
+        public static Result<LedgerEntry> CreateTenantDebit(
         Guid tenantId,
         Money amount,
         LedgerEntrySourceType sourceType,
@@ -131,7 +107,7 @@ namespace PaySplit.Domain.Ledgers
         string description,
         DateTimeOffset occurredAtUtc)
         {
-            return new LedgerEntry(
+            return Create(
                 tenantId,
                 merchantId: null,
                 amount,
@@ -140,6 +116,53 @@ namespace PaySplit.Domain.Ledgers
                 sourceId,
                 description,
                 occurredAtUtc);
+        }
+
+        private static Result<LedgerEntry> Create(
+            Guid tenantId,
+            Guid? merchantId,
+            Money amount,
+            LedgerEntryKind kind,
+            LedgerEntrySourceType sourceType,
+            Guid sourceId,
+            string description,
+            DateTimeOffset occurredAtUtc)
+        {
+            if (tenantId == Guid.Empty)
+                return Result<LedgerEntry>.Failure("Tenant id is required.");
+
+            if (amount is null)
+                return Result<LedgerEntry>.Failure("Ledger amount is required.");
+
+            if (amount.Amount <= 0)
+                return Result<LedgerEntry>.Failure(new LedgerAmountInvalidException(amount.Amount).Message);
+
+            if (sourceId == Guid.Empty)
+                return Result<LedgerEntry>.Failure("Source id is required.");
+
+            if (string.IsNullOrWhiteSpace(description))
+                return Result<LedgerEntry>.Failure("Description is required.");
+
+            if (occurredAtUtc == default)
+                return Result<LedgerEntry>.Failure("Occurred time is required.");
+
+            var isMerchantKind = kind == LedgerEntryKind.MerchantCredit || kind == LedgerEntryKind.MerchantDebit;
+            if (isMerchantKind && merchantId is null)
+                return Result<LedgerEntry>.Failure("Merchant id is required for merchant ledger entries.");
+
+            if (!isMerchantKind && merchantId is not null)
+                return Result<LedgerEntry>.Failure("Merchant id must be null for tenant ledger entries.");
+
+            return Result<LedgerEntry>.Success(
+                new LedgerEntry(
+                    tenantId,
+                    merchantId,
+                    amount,
+                    kind,
+                    sourceType,
+                    sourceId,
+                    description,
+                    occurredAtUtc));
         }
     }
 }

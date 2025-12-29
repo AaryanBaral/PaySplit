@@ -1,7 +1,7 @@
 namespace PaySplit.API.Dto.Tenants
 {
-    public class UpdateTenantRequest
+    public sealed record UpdateTenantRequest
     {
-        public string Name { get; set; } = default!;
+        public required string Name { get; init; }
     }
 }

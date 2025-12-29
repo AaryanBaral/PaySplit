@@ -1,6 +1,5 @@
 using PaySplit.Domain.Common;
 using PaySplit.Domain.Payments;
-using PaySplit.Domain.Payments.Exceptions;
 using Xunit;
 
 namespace PaySplit.Domain.Tests.Payments
@@ -10,56 +9,66 @@ namespace PaySplit.Domain.Tests.Payments
         [Fact]
         public void CreatePending_WithEmptyTenantId_ShouldThrow()
         {
-            Assert.Throws<ArgumentException>(() =>
-                Payment.CreatePending(Guid.Empty, Guid.NewGuid(), 10m, "USD", "ext-1"));
+            var result = Payment.CreatePending(Guid.Empty, Guid.NewGuid(), 10m, "USD");
+            Assert.False(result.IsSuccess);
         }
 
         [Fact]
         public void CreatePending_WithEmptyMerchantId_ShouldThrow()
         {
-            Assert.Throws<ArgumentException>(() =>
-                Payment.CreatePending(Guid.NewGuid(), Guid.Empty, 10m, "USD", "ext-1"));
+            var result = Payment.CreatePending(Guid.NewGuid(), Guid.Empty, 10m, "USD");
+            Assert.False(result.IsSuccess);
         }
 
         [Fact]
         public void CreatePending_WithInvalidAmount_ShouldThrow()
         {
-            Assert.Throws<InvalidPaymentAmountException>(() =>
-                Payment.CreatePending(Guid.NewGuid(), Guid.NewGuid(), 0m, "USD", "ext-1"));
+            var result = Payment.CreatePending(Guid.NewGuid(), Guid.NewGuid(), 0m, "USD");
+            Assert.False(result.IsSuccess);
         }
 
         [Fact]
-        public void CreatePending_WithMissingExternalId_ShouldThrow()
+        public void CreatePending_WithMissingExternalId_ShouldSucceed()
         {
-            Assert.Throws<ArgumentException>(() =>
-                Payment.CreatePending(Guid.NewGuid(), Guid.NewGuid(), 10m, "USD", " "));
+            var result = Payment.CreatePending(Guid.NewGuid(), Guid.NewGuid(), 10m, "USD");
+            Assert.True(result.IsSuccess);
+        }
+
+        [Fact]
+        public void CreateIncoming_WithMissingExternalId_ShouldFail()
+        {
+            var result = Payment.CreateIncoming(Guid.NewGuid(), Guid.NewGuid(), 10m, "USD", " ");
+            Assert.False(result.IsSuccess);
         }
 
         [Fact]
         public void MarkSucceeded_WithDefaultTime_ShouldThrow()
         {
-            var payment = Payment.CreatePending(Guid.NewGuid(), Guid.NewGuid(), 10m, "USD", "ext-1");
+            var payment = Payment.CreatePending(Guid.NewGuid(), Guid.NewGuid(), 10m, "USD").Value!;
 
-            Assert.Throws<ArgumentException>(() => payment.MarkSucceeded(default));
+            var result = payment.MarkSucceeded(default);
+            Assert.False(result.IsSuccess);
         }
 
         [Fact]
         public void CalculateRevenueSplit_WhenPending_ShouldThrow()
         {
-            var payment = Payment.CreatePending(Guid.NewGuid(), Guid.NewGuid(), 10m, "USD", "ext-1");
-            var share = Percentage.Create(10m);
+            var payment = Payment.CreatePending(Guid.NewGuid(), Guid.NewGuid(), 10m, "USD").Value!;
+            var share = Percentage.Create(10m).Value!;
 
-            Assert.Throws<PaymentInvalidStatusTransitionException>(() => payment.CalculateRevenueSplit(share));
+            var result = payment.CalculateRevenueSplit(share);
+            Assert.False(result.IsSuccess);
         }
 
         [Fact]
         public void CalculateRevenueSplit_WhenSucceeded_ShouldReturnSplit()
         {
-            var payment = Payment.CreatePending(Guid.NewGuid(), Guid.NewGuid(), 100m, "USD", "ext-1");
+            var payment = Payment.CreatePending(Guid.NewGuid(), Guid.NewGuid(), 100m, "USD").Value!;
             payment.MarkSucceeded(DateTimeOffset.UtcNow);
-            var share = Percentage.Create(25m);
+            var share = Percentage.Create(25m).Value!;
 
-            var (merchantAmount, tenantAmount) = payment.CalculateRevenueSplit(share);
+            var result = payment.CalculateRevenueSplit(share);
+            var (merchantAmount, tenantAmount) = result.Value!;
 
             Assert.Equal(25m, merchantAmount.Amount);
             Assert.Equal(75m, tenantAmount.Amount);

@@ -1,5 +1,7 @@
 
 
+using PaySplit.Domain.Common.Results;
+
 namespace PaySplit.Domain.Common
 {
     public class Percentage : ValueObject
@@ -13,13 +15,13 @@ namespace PaySplit.Domain.Common
             Value = value;
         }
 
-        public static Percentage Create(decimal value)
+        public static Result<Percentage> Create(decimal value)
         {
             if (value <= 0 || value >= 100)
             {
-                throw new Exceptions.PercentageOutOfRangeException(value);
+                return Result<Percentage>.Failure("Percentage must be between 0 and 100 (exclusive).");
             }
-            return new Percentage(value);
+            return Result<Percentage>.Success(new Percentage(value));
         }
 
         public decimal AsFraction() => Value / 100m;

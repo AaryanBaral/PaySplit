@@ -1,8 +1,8 @@
 namespace PaySplit.API.Dto.Common
 {
-    public class StatusResponse
+    public sealed record StatusResponse
     {
-        public Guid Id { get; set; }
-        public string Status { get; set; } = default!;
+        public Guid Id { get; init; }
+        public required string Status { get; init; }
     }
 }
